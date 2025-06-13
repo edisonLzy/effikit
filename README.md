@@ -33,3 +33,16 @@ pnpm build
 ## Learn More
 
 To learn more about creating cross-browser extensions with Extension.js, visit the [official documentation](https://extension.js.org).
+
+## 变更记录（最近一次提交）
+
+- 更新 .gitignore、package.json、pnpm-lock.yaml
+- 新增 .env.example、.taskmaster/ 目录及相关配置文件
+- 适配 MacBook Pro (M3/16GB) 本地 Ollama Qwen 模型推荐说明
+
+```shell
+pnpm task-master models --ollama --set-research qwen3:4b
+```
+
+- 添加 Taskmaster 相关开发与管理文件
+- 详见提交历史与各配置文件内容
