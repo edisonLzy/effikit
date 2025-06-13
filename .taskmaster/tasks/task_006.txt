@@ -1,0 +1,11 @@
+# Task ID: 6
+# Title: Implement Tool Enable/Disable Toggle
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Allow users to enable or disable individual tools from the tool list.
+# Details:
+Add a toggle button next to each tool entry. Update the tool's status in local storage when toggled. Ensure the UI reflects the current status of each tool.
+
+# Test Strategy:
+Test enabling/disabling tools and verify that the status is updated in the UI and local storage.

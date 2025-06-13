@@ -1,0 +1,11 @@
+# Task ID: 4
+# Title: Develop Response Editing and Mocking Feature
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Allow users to edit and mock responses for specific network requests.
+# Details:
+Create an editor for response content, including headers, body, and status code. Implement saving of mock rules and automatic application to matching requests. Ensure rules are only applied locally.
+
+# Test Strategy:
+Test response editing with various content types. Verify that mock rules are applied correctly and that they only affect local requests.

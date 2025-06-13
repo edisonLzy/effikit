@@ -1,0 +1,11 @@
+# Task ID: 8
+# Title: Implement Mock Rule Application Logic
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Ensure that mock rules are applied to matching requests and that they override the actual responses.
+# Details:
+Write logic to check each request against stored mock rules. Apply the first matching rule's response. Ensure that mock responses are only applied locally and not to the actual server.
+
+# Test Strategy:
+Test mock rule application with various request scenarios. Verify that mock responses are applied correctly and that actual responses are used when no rules match.
