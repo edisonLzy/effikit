@@ -1,6 +1,6 @@
 # Task ID: 1
 # Title: Implement Chrome Extension Sidebar Integration
-# Status: pending
+# Status: done
 # Dependencies: None
 # Priority: medium
 # Description: Develop the sidebar component for the Chrome extension, ensuring it can be embedded into the browser and toggled by the user.

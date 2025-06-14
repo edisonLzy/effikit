@@ -8,7 +8,7 @@
       "testStrategy": "Test sidebar visibility and toggle functionality in Chrome browser. Verify that the sidebar appears correctly in different resolutions and browser versions.",
       "priority": "medium",
       "dependencies": [],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {

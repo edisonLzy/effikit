@@ -12,7 +12,7 @@ importers:
         specifier: ^2.1.0
         version: 2.1.7(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-slot':
-        specifier: ^1.1.0
+        specifier: ^1.2.3
         version: 1.2.3(@types/react@18.3.23)(react@18.3.1)
       '@radix-ui/react-switch':
         specifier: ^1.1.1
@@ -48,6 +48,9 @@ importers:
       '@tailwindcss/typography':
         specifier: ^0.5.15
         version: 0.5.16(tailwindcss@4.1.10)
+      '@types/chrome':
+        specifier: ^0.0.326
+        version: 0.0.326
       '@types/react':
         specifier: ^18.2.64
         version: 18.3.23
@@ -1547,6 +1550,9 @@ packages:
 
   '@types/chrome@0.0.287':
     resolution: {integrity: sha512-wWhBNPNXZHwycHKNYnexUcpSbrihVZu++0rdp6GEk5ZgAglenLx+RwdEouh6FrHS0XQiOxSd62yaujM1OoQlZQ==}
+
+  '@types/chrome@0.0.326':
+    resolution: {integrity: sha512-WS7jKf3ZRZFHOX7dATCZwqNJgdfiSF0qBRFxaO0LhIOvTNBrfkab26bsZwp6EBpYtqp8loMHJTnD6vDTLWPKYw==}
 
   '@types/connect-history-api-fallback@1.5.4':
     resolution: {integrity: sha512-n6Cr2xS1h4uAulPRdlw6Jl6s1oG8KrVilPN2yUITEs+K48EzMJJ3W1xy8K5eWuFvjp3R74AOIGSmp2UfBJ8HFw==}
@@ -7161,6 +7167,11 @@ snapshots:
       '@types/node': 24.0.1
 
   '@types/chrome@0.0.287':
+    dependencies:
+      '@types/filesystem': 0.0.36
+      '@types/har-format': 1.2.16
+
+  '@types/chrome@0.0.326':
     dependencies:
       '@types/filesystem': 0.0.36
       '@types/har-format': 1.2.16
