@@ -1,6 +1,6 @@
 # Task ID: 2
 # Title: Develop Tool Management UI
-# Status: pending
+# Status: done
 # Dependencies: None
 # Priority: medium
 # Description: Create the user interface for managing tools, including search functionality and a list of available tools.

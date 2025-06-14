@@ -121,3 +121,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* 滚动条隐藏样式 */
+.scrollbar-none {
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}

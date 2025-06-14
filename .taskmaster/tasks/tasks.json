@@ -19,7 +19,7 @@
       "testStrategy": "Test search functionality with various keywords. Verify that tools can be enabled/disabled and that the list updates in real-time.",
       "priority": "medium",
       "dependencies": [],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
