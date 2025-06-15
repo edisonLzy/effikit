@@ -1,6 +1,6 @@
 import React from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router';
-import { ToolManagerPage } from './components/ToolManagerPage';
+import { ToolManagerPage } from './pages/ToolManagerPage';
 import { ToolDetailPage } from './components/ToolDetailPage';
 
 // 404页面组件

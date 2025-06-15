@@ -303,3 +303,39 @@ pnpm task-master expand --id=2 --prompt='the response json must wrap in markdown
 **技术成就**: 成功将基础工具列表界面转换为类似Mac Launchpad的现代应用管理平台，具备完整的搜索、导航和详情管理功能。
 
 ---
+
+## 重构工具管理页面组件结构
+
+### 变更的文件
+1. sidebar/components/ToolItem.tsx - 新增（提取的工具项组件）
+2. sidebar/components/LoadingSpinner.tsx - 新增（加载状态组件）
+3. sidebar/components/ErrorDisplay.tsx - 新增（错误显示组件）
+4. sidebar/components/ToolManagerPage.tsx - 修改（重构主页面）
+
+### 本次提交的详细内容总结
+本次提交重构了工具管理页面的组件结构，提高了代码的可维护性和复用性：
+
+1. **组件拆分与重构**:
+   - 将ToolItem组件从ToolManagerPage中提取到单独文件，遵循组件分离原则
+   - 创建了LoadingSpinner通用组件，用于统一处理加载状态显示
+   - 创建了ErrorDisplay通用组件，用于统一处理错误信息展示
+   - 重构了ToolManagerPage组件，使用新创建的组件
+
+2. **UI组件库集成**:
+   - 使用shadcn/ui的Input组件替代原生input元素，提高UI一致性
+   - 使用Lucide图标库替代内联SVG，遵循项目技术栈规范
+   - 改进了布局和样式，使界面更现代化
+
+3. **用户体验优化**:
+   - 增加了空列表状态的处理，提供更好的用户反馈
+   - 增加了列表区域的滚动功能，优化长列表体验
+   - 统一了错误和加载状态的展示方式
+
+这些改动使组件结构更加清晰，遵循了"视图与逻辑严格分离"的原则，同时提高了代码的可维护性和可读性。每个组件现在都有明确的单一职责，并且使用了项目规定的UI组件库和图标库。
+
+### 相关问题或需求
+- 提高代码可维护性和组件复用性
+- 统一UI组件和图标使用规范
+- 优化用户体验和界面交互
+
+---
