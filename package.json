@@ -46,7 +46,7 @@
     "postcss": "^8.5.5",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.10",
-    "task-master-ai": "^0.16.2",
+    "task-master-ai": "^0.17.0",
     "tw-animate-css": "1.2.5",
     "typescript": "5.3.3",
     "typescript-eslint": "^8.34.0"

@@ -1,44 +1,56 @@
 import { useCallback } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 
 export function useToolNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toolId } = useParams<{ toolId: string }>();
-  
+
+  /**
+   * 导航到工具详情页面
+   * @param toolId 工具ID
+   */
   const navigateToTool = useCallback((toolId: string) => {
     navigate(`/tool/${toolId}`);
   }, [navigate]);
-  
+
+  /**
+   * 导航回工具列表页面
+   */
   const navigateToHome = useCallback(() => {
     navigate('/');
   }, [navigate]);
-  
-  const getCurrentToolId = useCallback(() => {
+
+  /**
+   * 获取当前工具ID（如果在工具详情页面）
+   * @returns 工具ID或null
+   */
+  const getCurrentToolId = useCallback((): string | null => {
     const match = location.pathname.match(/^\/tool\/(.+)$/);
     return match ? match[1] : null;
   }, [location.pathname]);
 
-  const isToolRoute = useCallback(() => {
+  /**
+   * 检查当前路由是否为工具详情页面
+   * @returns 是否在工具详情页面
+   */
+  const isToolRoute = useCallback((): boolean => {
     return location.pathname.startsWith('/tool/');
   }, [location.pathname]);
 
-  const goBack = useCallback(() => {
-    navigate(-1);
-  }, [navigate]);
+  /**
+   * 检查当前路由是否为首页
+   * @returns 是否在首页
+   */
+  const isHomeRoute = useCallback((): boolean => {
+    return location.pathname === '/';
+  }, [location.pathname]);
 
-  const goForward = useCallback(() => {
-    navigate(1);
-  }, [navigate]);
-  
   return {
     navigateToTool,
     navigateToHome,
     getCurrentToolId,
     isToolRoute,
-    goBack,
-    goForward,
-    currentPath: location.pathname,
-    currentToolId: toolId
+    isHomeRoute,
+    currentPath: location.pathname
   };
 } 

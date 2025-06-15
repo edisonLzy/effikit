@@ -14,7 +14,8 @@ const MOCK_TOOLS = [
     icon: Calculator,
     enabled: true,
     category: '工具',
-    version: '1.0.0'
+    version: '1.0.0',
+    route: '/tool/calculator'
   },
   {
     id: 'database',
@@ -23,7 +24,8 @@ const MOCK_TOOLS = [
     icon: Database,
     enabled: false,
     category: '开发',
-    version: '2.1.0'
+    version: '2.1.0',
+    route: '/tool/database'
   },
   {
     id: 'notes',
@@ -32,7 +34,8 @@ const MOCK_TOOLS = [
     icon: FileText,
     enabled: true,
     category: '效率',
-    version: '1.2.0'
+    version: '1.2.0',
+    route: '/tool/notes'
   }
 ];
 

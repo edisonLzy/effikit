@@ -1,103 +1,139 @@
 {
-  "tasks": [
-    {
-      "id": 1,
-      "title": "Implement Chrome Extension Sidebar Integration",
-      "description": "Develop the sidebar component for the Chrome extension, ensuring it can be embedded into the browser and toggled by the user.",
-      "details": "Create a React component for the sidebar with a toggle button. Use Chrome's sidebar API to register the component and ensure it works across different Chrome versions. Implement responsive design for various screen sizes.",
-      "testStrategy": "Test sidebar visibility and toggle functionality in Chrome browser. Verify that the sidebar appears correctly in different resolutions and browser versions.",
-      "priority": "medium",
-      "dependencies": [],
-      "status": "done",
-      "subtasks": []
-    },
-    {
-      "id": 2,
-      "title": "Develop Tool Management UI",
-      "description": "Create the user interface for managing tools, including search functionality and a list of available tools.",
-      "details": "Design a search bar with auto-suggestions and a list view for tools. Implement tool enable/disable toggles. Ensure the UI is responsive and works well with the sidebar layout.",
-      "testStrategy": "Test search functionality with various keywords. Verify that tools can be enabled/disabled and that the list updates in real-time.",
-      "priority": "medium",
-      "dependencies": [],
-      "status": "done",
-      "subtasks": []
-    },
-    {
-      "id": 3,
-      "title": "Implement Network Request Monitoring",
-      "description": "Develop the network request monitoring feature to capture and display all network requests in the browser.",
-      "details": "Use Chrome's devtools protocol to intercept and log network requests. Display requests in a list with method, URL, status, and time. Ensure compatibility with XHR and fetch requests.",
-      "testStrategy": "Test request capture with different types of requests (XHR, fetch). Verify that the list updates in real-time and displays correct request details.",
-      "priority": "medium",
-      "dependencies": [],
-      "status": "pending",
-      "subtasks": []
-    },
-    {
-      "id": 4,
-      "title": "Develop Response Editing and Mocking Feature",
-      "description": "Allow users to edit and mock responses for specific network requests.",
-      "details": "Create an editor for response content, including headers, body, and status code. Implement saving of mock rules and automatic application to matching requests. Ensure rules are only applied locally.",
-      "testStrategy": "Test response editing with various content types. Verify that mock rules are applied correctly and that they only affect local requests.",
-      "priority": "medium",
-      "dependencies": [],
-      "status": "pending",
-      "subtasks": []
-    },
-    {
-      "id": 5,
-      "title": "Develop Tool Search and Filtering",
-      "description": "Implement search and filtering capabilities for the tool list to enhance user experience.",
-      "details": "Add search filters by tool name, description, and status. Implement sorting options for the tool list. Ensure search is case-insensitive and supports partial matches.",
-      "testStrategy": "Test search with various keywords and filter options. Verify that the list updates correctly and is sorted as expected.",
-      "priority": "medium",
-      "dependencies": [],
-      "status": "pending",
-      "subtasks": []
-    },
-    {
-      "id": 6,
-      "title": "Implement Tool Enable/Disable Toggle",
-      "description": "Allow users to enable or disable individual tools from the tool list.",
-      "details": "Add a toggle button next to each tool entry. Update the tool's status in local storage when toggled. Ensure the UI reflects the current status of each tool.",
-      "testStrategy": "Test enabling/disabling tools and verify that the status is updated in the UI and local storage.",
-      "priority": "medium",
-      "dependencies": [],
-      "status": "pending",
-      "subtasks": []
-    },
-    {
-      "id": 7,
-      "title": "Develop Mock Rule Management UI",
-      "description": "Create a UI for managing mock rules, including adding, editing, and deleting rules.",
-      "details": "Design a form for creating new mock rules with request matching criteria, response content, and status. Implement editing and deletion of existing rules. Ensure rules are saved to local storage.",
-      "testStrategy": "Test rule creation, editing, and deletion. Verify that rules are saved and applied correctly.",
-      "priority": "medium",
-      "dependencies": [],
-      "status": "pending",
-      "subtasks": []
-    },
-    {
-      "id": 8,
-      "title": "Implement Mock Rule Application Logic",
-      "description": "Ensure that mock rules are applied to matching requests and that they override the actual responses.",
-      "details": "Write logic to check each request against stored mock rules. Apply the first matching rule's response. Ensure that mock responses are only applied locally and not to the actual server.",
-      "testStrategy": "Test mock rule application with various request scenarios. Verify that mock responses are applied correctly and that actual responses are used when no rules match.",
-      "priority": "medium",
-      "dependencies": [],
-      "status": "pending",
-      "subtasks": []
-    },
-    {
-      "id": 9,
-      "title": "Implement UI/UX Enhancements",
-      "description": "Improve the user interface and experience for better usability and responsiveness.",
-      "details": "Refine the sidebar layout, add tooltips for tool descriptions, and ensure the UI is responsive on different screen sizes. Optimize performance for large numbers of tools and requests.",
-      "testStrategy": "Test UI responsiveness and performance. Ensure that all interactive elements work correctly and the UI is visually appealing.",
-      "priority": "medium",
-      "dependencies": [],
-      "status": "pending",
-      "subtasks": []
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Implement Chrome Extension Sidebar Integration",
+        "description": "Develop the sidebar component for the Chrome extension, ensuring it can be embedded into the browser and toggled by the user.",
+        "details": "Create a React component for the sidebar with a toggle button. Use Chrome's sidebar API to register the component and ensure it works across different Chrome versions. Implement responsive design for various screen sizes.",
+        "testStrategy": "Test sidebar visibility and toggle functionality in Chrome browser. Verify that the sidebar appears correctly in different resolutions and browser versions.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Develop Tool Management UI",
+        "description": "Create a search bar for real-time tool search and a grid-based tool list styled like Mac Launchpad, with seamless navigation to tool details.",
+        "status": "in-progress",
+        "dependencies": [],
+        "priority": "medium",
+        "details": "Design a search bar at the middle-bottom of the page for real-time tool name search. Display a grid-based tool list above the search bar, featuring icon-based tool representations. Implement smooth navigation to a tool's dedicated page when a tool is selected.",
+        "testStrategy": "Verify real-time search functionality with keyword inputs. Confirm grid layout renders correctly on different screen sizes. Test seamless navigation to tool detail pages upon selection.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design grid layout with responsive sizing",
+            "description": "Create a responsive grid layout using CSS Grid or Flexbox, ensuring adaptive column widths and proper spacing for different screen sizes.",
+            "dependencies": [],
+            "details": "Implement media queries and flexible layout properties to maintain grid integrity across devices.",
+            "status": "in-progress"
+          },
+          {
+            "id": 2,
+            "title": "Implement search bar with debounce",
+            "description": "Develop a search bar component with debounce functionality to delay search requests until user stops typing.",
+            "dependencies": [
+              1
+            ],
+            "details": "Use JavaScript to add a debounce timer, ensuring the search function is triggered only after a delay (e.g., 300ms).",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Add tool detail navigation routing",
+            "description": "Integrate a routing system to navigate between tool detail pages, ensuring dynamic content loading based on URL parameters.",
+            "dependencies": [
+              2
+            ],
+            "details": "Use a front-end routing library (e.g., React Router) to handle navigation and display tool-specific details.",
+            "status": "pending"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Implement Network Request Monitoring",
+        "description": "Develop the network request monitoring feature to capture and display all network requests in the browser.",
+        "details": "Use Chrome's devtools protocol to intercept and log network requests. Display requests in a list with method, URL, status, and time. Ensure compatibility with XHR and fetch requests.",
+        "testStrategy": "Test request capture with different types of requests (XHR, fetch). Verify that the list updates in real-time and displays correct request details.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Develop Response Editing and Mocking Feature",
+        "description": "Allow users to edit and mock responses for specific network requests.",
+        "details": "Create an editor for response content, including headers, body, and status code. Implement saving of mock rules and automatic application to matching requests. Ensure rules are only applied locally.",
+        "testStrategy": "Test response editing with various content types. Verify that mock rules are applied correctly and that they only affect local requests.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Develop Tool Search and Filtering",
+        "description": "Implement search and filtering capabilities for the tool list to enhance user experience.",
+        "details": "Add search filters by tool name, description, and status. Implement sorting options for the tool list. Ensure search is case-insensitive and supports partial matches.",
+        "testStrategy": "Test search with various keywords and filter options. Verify that the list updates correctly and is sorted as expected.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Implement Tool Enable/Disable Toggle",
+        "description": "Allow users to enable or disable individual tools from the tool list.",
+        "details": "Add a toggle button next to each tool entry. Update the tool's status in local storage when toggled. Ensure the UI reflects the current status of each tool.",
+        "testStrategy": "Test enabling/disabling tools and verify that the status is updated in the UI and local storage.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Develop Mock Rule Management UI",
+        "description": "Create a UI for managing mock rules, including adding, editing, and deleting rules.",
+        "details": "Design a form for creating new mock rules with request matching criteria, response content, and status. Implement editing and deletion of existing rules. Ensure rules are saved to local storage.",
+        "testStrategy": "Test rule creation, editing, and deletion. Verify that rules are saved and applied correctly.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Implement Mock Rule Application Logic",
+        "description": "Ensure that mock rules are applied to matching requests and that they override the actual responses.",
+        "details": "Write logic to check each request against stored mock rules. Apply the first matching rule's response. Ensure that mock responses are only applied locally and not to the actual server.",
+        "testStrategy": "Test mock rule application with various request scenarios. Verify that mock responses are applied correctly and that actual responses are used when no rules match.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Implement UI/UX Enhancements",
+        "description": "Improve the user interface and experience for better usability and responsiveness.",
+        "details": "Refine the sidebar layout, add tooltips for tool descriptions, and ensure the UI is responsive on different screen sizes. Optimize performance for large numbers of tools and requests.",
+        "testStrategy": "Test UI responsiveness and performance. Ensure that all interactive elements work correctly and the UI is visually appealing.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-06-15T09:53:03.157Z",
+      "updated": "2025-06-15T10:10:54.110Z",
+      "description": "Tasks for master context"
     }
-  ]
+  }
 }

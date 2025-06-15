@@ -1,11 +1,11 @@
 # Task ID: 2
 # Title: Develop Tool Management UI
-# Status: done
+# Status: in-progress
 # Dependencies: None
 # Priority: medium
-# Description: Create the user interface for managing tools, including search functionality and a list of available tools.
+# Description: Create a search bar for real-time tool search and a grid-based tool list styled like Mac Launchpad, with seamless navigation to tool details.
 # Details:
-Design a search bar with auto-suggestions and a list view for tools. Implement tool enable/disable toggles. Ensure the UI is responsive and works well with the sidebar layout.
+Design a search bar at the middle-bottom of the page for real-time tool name search. Display a grid-based tool list above the search bar, featuring icon-based tool representations. Implement smooth navigation to a tool's dedicated page when a tool is selected.
 
 # Test Strategy:
-Test search functionality with various keywords. Verify that tools can be enabled/disabled and that the list updates in real-time.
+Verify real-time search functionality with keyword inputs. Confirm grid layout renders correctly on different screen sizes. Test seamless navigation to tool detail pages upon selection.
