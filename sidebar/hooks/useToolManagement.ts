@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useToolData } from './useToolData';
 import { useToolStorage } from './useToolStorage';
 
-export const useToolManagement = () => {
+export function useToolManagement() {
   const { 
     tools, 
     isLoading: dataLoading, 
@@ -178,4 +178,4 @@ export const useToolManagement = () => {
       return tools.filter(tool => enabledTools[tool.id]);
     }, [tools, enabledTools])
   };
-}; 
+} 

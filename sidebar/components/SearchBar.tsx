@@ -13,14 +13,16 @@ interface SearchBarProps {
   showResults?: boolean;
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({
-  searchTerm,
-  onSearchChange,
-  onToolSelect,
-  filteredTools,
-  placeholder = '搜索工具...',
-  showResults = false
-}) => {
+export function SearchBar(props: SearchBarProps) {
+  const {
+    searchTerm,
+    onSearchChange,
+    onToolSelect,
+    filteredTools,
+    placeholder = '搜索工具...',
+    showResults = false
+  } = props;
+
   const handleClear = () => {
     onSearchChange('');
   };
@@ -79,4 +81,4 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       )}
     </div>
   );
-}; 
+} 

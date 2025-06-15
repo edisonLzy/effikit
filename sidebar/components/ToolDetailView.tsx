@@ -15,13 +15,15 @@ interface ToolDetailViewProps {
   onConfigureTool?: (toolId: string) => void;
 }
 
-export const ToolDetailView: React.FC<ToolDetailViewProps> = ({
-  currentTool,
-  isEnabled = false,
-  isLoading = false,
-  onToggleTool,
-  onConfigureTool
-}) => {
+export function ToolDetailView(props: ToolDetailViewProps) {
+  const {
+    currentTool,
+    isEnabled = false,
+    isLoading = false,
+    onToggleTool,
+    onConfigureTool
+  } = props;
+
   if (isLoading) {
     return (
       <Card className="h-full">
@@ -149,4 +151,4 @@ export const ToolDetailView: React.FC<ToolDetailViewProps> = ({
       </CardContent>
     </Card>
   );
-}; 
+} 

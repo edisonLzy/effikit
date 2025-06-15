@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router';
 
-export const useToolNavigation = () => {
+export function useToolNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toolId } = useParams<{ toolId: string }>();
@@ -41,4 +41,4 @@ export const useToolNavigation = () => {
     currentPath: location.pathname,
     currentToolId: toolId
   };
-}; 
+} 

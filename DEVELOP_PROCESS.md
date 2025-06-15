@@ -184,3 +184,35 @@
 **构建状态**: 成功构建（323.25KB，1.18s构建时间）
 
 ---
+
+## 调整sidebar目录React组件与Hook为标准函数式定义
+
+### 变更的文件
+1. sidebar/SidebarApp.tsx - 修改
+2. sidebar/components/SearchBar.tsx - 修改
+3. sidebar/components/ToolDetailView.tsx - 修改
+4. sidebar/components/ToolManagerPage.tsx - 修改
+5. sidebar/components/ToolTab.tsx - 修改
+6. sidebar/components/ToolTabBar.tsx - 修改
+7. sidebar/hooks/useToolData.ts - 修改
+8. sidebar/hooks/useToolManagement.ts - 修改
+9. sidebar/hooks/useToolNavigation.ts - 修改
+10. sidebar/hooks/useToolSearch.ts - 修改
+11. sidebar/hooks/useToolStorage.ts - 修改
+12. .cursor/rules/frontend/chrome_extension_guide.mdc - 修改
+13. .cursor/rules/frontend/project_structure_guide.mdc - 修改
+14. .cursor/rules/frontend/react_coding_guide.mdc - 修改
+15. .cursor/rules/frontend/tech_stack_guide.mdc - 修改
+
+### 本次提交的详细内容总结
+- 按照react_coding_guide.mdc规范，将sidebar目录下所有React组件和自定义Hook全部由const/FC定义方式重构为function定义。
+- 保证所有业务逻辑均封装于自定义Hook，组件只负责UI渲染和事件绑定，完全实现视图与逻辑分离。
+- 统一了Props接口定义，提升类型安全。
+- 相关规则文档alwaysApply属性修正为true，确保规范强制生效。
+- 代码结构更清晰，便于维护和扩展。
+
+### 相关问题或需求
+- 规范化React组件与Hook定义，提升可维护性和一致性
+- 关联规则：react_coding_guide.mdc
+
+---

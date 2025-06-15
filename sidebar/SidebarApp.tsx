@@ -3,7 +3,7 @@ import { MemoryRouter, Routes, Route } from 'react-router';
 import { ToolManagerPage } from './components/ToolManagerPage';
 
 // 工具详情页面组件（占位符）
-const ToolDetailPage: React.FC = () => {
+function ToolDetailPage() {
   return (
     <div className="h-full bg-background flex items-center justify-center">
       <div className="text-center">
@@ -12,10 +12,10 @@ const ToolDetailPage: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 // 404页面组件
-const NotFoundPage: React.FC = () => {
+function NotFoundPage() {
   return (
     <div className="h-full bg-background flex items-center justify-center">
       <div className="text-center">
@@ -24,7 +24,7 @@ const NotFoundPage: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 export default function SidebarApp() {
   return (

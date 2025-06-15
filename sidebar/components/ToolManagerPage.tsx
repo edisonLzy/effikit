@@ -5,7 +5,7 @@ import { SearchBar } from './SearchBar';
 import { useToolSearch } from '@/sidebar/hooks/useToolSearch';
 import { useToolManagement } from '@/sidebar/hooks/useToolManagement';
 
-export const ToolManagerPage: React.FC = () => {
+export function ToolManagerPage() {
   // 🎯 所有逻辑通过 Hook 处理
   const {
     tools,
@@ -126,4 +126,4 @@ export const ToolManagerPage: React.FC = () => {
       </div>
     </div>
   );
-}; 
+} 

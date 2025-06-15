@@ -15,16 +15,18 @@ interface ToolTabBarProps {
   showToggle?: boolean;
 }
 
-export const ToolTabBar: React.FC<ToolTabBarProps> = ({
-  tools,
-  enabledTools,
-  currentToolId,
-  onToolSelect,
-  onToolToggle,
-  showAddButton = false,
-  onAddTool,
-  showToggle = false
-}) => {
+export function ToolTabBar(props: ToolTabBarProps) {
+  const {
+    tools,
+    enabledTools,
+    currentToolId,
+    onToolSelect,
+    onToolToggle,
+    showAddButton = false,
+    onAddTool,
+    showToggle = false
+  } = props;
+
   // 只显示启用的工具标签
   const enabledToolsList = tools.filter(tool => enabledTools[tool.id]);
 
@@ -67,4 +69,4 @@ export const ToolTabBar: React.FC<ToolTabBarProps> = ({
       )}
     </div>
   );
-}; 
+} 

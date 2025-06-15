@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import type { Tool } from '@/sidebar/types';
 
-export const useToolSearch = (tools: Tool[]) => {
+export function useToolSearch(tools: Tool[]) {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
 
@@ -51,4 +51,4 @@ export const useToolSearch = (tools: Tool[]) => {
     clearSearch,
     selectSearchHistory
   };
-}; 
+} 

@@ -13,14 +13,16 @@ interface ToolTabProps {
   showToggle?: boolean;
 }
 
-export const ToolTab: React.FC<ToolTabProps> = React.memo(({
-  tool,
-  isActive,
-  isEnabled,
-  onClick,
-  onToggle,
-  showToggle = false
-}) => {
+function ToolTabComponent(props: ToolTabProps) {
+  const {
+    tool,
+    isActive,
+    isEnabled,
+    onClick,
+    onToggle,
+    showToggle = false
+  } = props;
+
   const IconComponent = tool.icon;
 
   const handleToggle = (e: React.MouseEvent) => {
@@ -60,6 +62,8 @@ export const ToolTab: React.FC<ToolTabProps> = React.memo(({
       )}
     </Button>
   );
-});
+}
+
+export const ToolTab = React.memo(ToolTabComponent);
 
 ToolTab.displayName = 'ToolTab'; 
