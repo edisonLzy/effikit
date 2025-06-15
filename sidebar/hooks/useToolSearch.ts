@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import type { Tool } from '@/lib/types';
+import type { Tool } from '@/sidebar/types';
 
 export const useToolSearch = (tools: Tool[]) => {
   const [searchTerm, setSearchTerm] = useState('');

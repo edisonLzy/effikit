@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Activity, Globe, Code, Zap } from 'lucide-react';
-import type { Tool } from '@/lib/types';
+import type { Tool } from '@/sidebar/types';
 
 // 初始工具数据
 const initialTools: Tool[] = [

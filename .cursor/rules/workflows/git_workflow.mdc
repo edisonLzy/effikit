@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 # Git 提交流程自动化规则
 
@@ -13,41 +13,20 @@ alwaysApply: true
 ## **完整提交流程**
 
 ### **第一步：暂存变更**
+
 ```bash
 git add .
 ```
-- 暂存所有工作目录中的变更
-- 包括新文件、修改文件和删除文件
 
 ### **第二步：生成提交信息**
-- **严格遵循** [COMMIT_CONVENTION.md](mdc:COMMIT_CONVENTION.md) 规范
-- 分析变更内容，确定合适的提交类型：
-  - `feat`: 新功能
-  - `fix`: 修复bug
-  - `docs`: 文档变更
-  - `style`: 代码格式调整
-  - `refactor`: 重构代码
-  - `test`: 测试相关
-  - `chore`: 构建过程或辅助工具变更
-  - `perf`: 性能优化
-  - `ci`: CI配置变更
-  - `build`: 构建系统变更
-
-- **提交信息格式**：
-  ```
-  <type>(<scope>): <subject>
-  
-  <body>
-  
-  <footer>
-  ```
+- **严格遵循** [COMMIT_CONVENTION.md](mdc:COMMIT_CONVENTION.md) 提交信息格式规范
 
 ### **第三步：更新开发日志**
 - 在 [DEVELOP_PROCESS.md](mdc:DEVELOP_PROCESS.md) 文件末尾追加变更内容
 
 - **格式模板**：
   ```markdown
-  ## 本次提交内容摘要
+  ## <本次提交内容总结>
   
   ### 变更的文件
   1. 文件路径1 - 变更类型（新增/修改/删除）
@@ -88,17 +67,17 @@ git push origin <current-branch>
 - 使用 `git diff --name-status` 获取文件变更状态
 - 识别变更类型：新增(A)、修改(M)、删除(D)、重命名(R)
 
-### **3. 智能提交信息生成**
+### **3. 开发日志记录**
+
+- 整理文件变更列表
+- 生成可追溯的详细记录
+
+### **4. 智能提交信息生成**
 - 根据变更文件的路径和内容推断scope
 - 根据变更性质确定type
 - 生成简洁明确的subject
 - 如有必要，添加详细的body说明
 
-### **4. 开发日志记录**
-- 获取提交后的commit ID
-- 格式化时间戳
-- 整理文件变更列表
-- 生成可追溯的详细记录
 
 ### **5. 错误处理**
 - 如果暂存失败，提示用户检查文件状态

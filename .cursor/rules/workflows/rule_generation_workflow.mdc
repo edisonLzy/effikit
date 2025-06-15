@@ -1,0 +1,31 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Cursor Rules Format
+
+## Template Structure for Rules Files
+
+```mdc
+
+# <Rule Title>
+
+## Goal
+
+{Goal of rule}
+
+## Critical Rules
+
+{list of critical Rules}
+
+## Examples
+
+<example>
+{valid rule application}
+</example>
+
+<example type="invalid">
+{invalid rule application}
+</example>
+```

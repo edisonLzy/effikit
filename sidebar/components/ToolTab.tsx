@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Tool } from '@/lib/types';
+import type { Tool } from '@/sidebar/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';

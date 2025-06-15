@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import { ToolTab } from './ToolTab';
-import type { Tool } from '@/lib/types';
+import type { Tool } from '@/sidebar/types';
 import { Button } from '@/components/ui/button';
 
 interface ToolTabBarProps {

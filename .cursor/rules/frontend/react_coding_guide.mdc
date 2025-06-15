@@ -1,0 +1,255 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# React 组件编写规范
+
+## Goal
+
+建立基于 Hook First 原则的 React 组件开发标准，实现视图与逻辑的严格分离，确保代码的可维护性、可测试性和可复用性。
+
+## Critical Rules
+
+### **视图与逻辑严格分离**
+- **视图层**：组件只负责 UI 渲染和用户交互事件绑定
+- **逻辑层**：所有业务逻辑、状态管理、副作用必须封装在自定义 Hook 中
+- **数据层**：数据获取、缓存、同步通过专门的 Hook 管理
+
+### **Hook First 原则**
+- **优先使用自定义 Hook** 封装所有业务逻辑
+- **组件内部禁止直接写业务逻辑**
+- **每个 Hook 职责单一且可复用**
+- **使用 use 前缀命名** 所有自定义 Hook
+
+### **组件结构标准**
+
+- **组件和hook格式**：不要使用const以及FC定义组件和hook.
+- **Props 接口定义**：每个组件必须定义清晰的 Props 接口
+- **错误边界处理**：在 Hook 中统一处理错误，组件只负责展示错误状态
+
+### **Hook 设计规范**
+- **职责分离**：数据管理、搜索逻辑、UI 状态分别用不同 Hook 处理
+- **Hook 组合**：通过组合多个简单 Hook 创建复杂功能
+- **返回值统一**：Hook 返回对象包含状态、操作函数和错误处理
+- **副作用封装**：所有 useEffect 逻辑封装在 Hook 内部
+
+### **状态管理原则**
+- **本地状态优先**：组件内部状态使用 useState
+- **全局状态谨慎**：只有真正需要跨组件共享的状态才使用 Context
+- **状态提升**：在合适的层级管理状态，避免过度提升
+- **不可变更新**：状态更新遵循不可变原则
+
+### **组件拆分策略**
+- **容器组件与展示组件分离**：逻辑组件负责数据，展示组件负责渲染
+- **单一职责原则**：每个组件只负责一个明确的功能
+- **组件粒度合理**：避免过度拆分或巨型组件
+- **可复用性考虑**：通用组件抽取到 components 目录
+
+## Examples
+
+<example>
+
+**正确示例：组件结构**
+
+```tsx
+interface ToolbarProps {
+
+}
+function Toolbar(props: ToolbarProps){
+    const { } = props;
+}
+```
+
+**正确示例：Hook结构**
+
+```tsx
+interface UseToolbarOptions {
+
+}
+function useToolbar(options: UseToolbarOptions){
+    const { } = options;
+}
+```
+
+**正确示例：视图与逻辑分离**
+
+```tsx
+// ✅ 正确：视图与逻辑分离
+import React from 'react';
+import { useToolManagement } from '@/hooks/useToolManagement';
+import { useToolSearch } from '@/hooks/useToolSearch';
+import { ToolList } from './ToolList';
+import { SearchBar } from './SearchBar';
+
+interface ToolManagerProps {
+  initialTools?: Tool[];
+}
+
+export function ToolManager(props: ToolManagerProps){
+
+  const { initialTools } = props;
+
+  // 🎯 所有逻辑通过 Hook 处理
+  const {
+    tools,
+    enabledTools,
+    isLoading,
+    error,
+    toggleTool,
+    refreshTools
+  } = useToolManagement(initialTools);
+
+  const {
+    searchTerm,
+    filteredTools,
+    handleSearch,
+    clearSearch
+  } = useToolSearch(tools);
+
+  // 🎯 组件只负责渲染和事件绑定
+  if (isLoading) {
+    return <div className="loading">加载中...</div>;
+  }
+
+  if (error) {
+    return <div className="error">错误: {error}</div>;
+  }
+
+  return (
+    <div className="tool-manager">
+      <SearchBar
+        value={searchTerm}
+        onChange={handleSearch}
+        onClear={clearSearch}
+        placeholder="搜索工具..."
+      />
+      <ToolList
+        tools={filteredTools}
+        enabledTools={enabledTools}
+        onToggle={toggleTool}
+        onRefresh={refreshTools}
+      />
+    </div>
+  );
+};
+```
+
+**正确示例：自定义 Hook 设计**
+```tsx
+// ✅ 数据管理 Hook
+function useToolData(initialTools: Tool[]) {
+  const [tools, setTools] = useState<Tool[]>(initialTools);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const addTool = useCallback((tool: Tool) => {
+    setTools(prev => [...prev, tool]);
+  }, []);
+
+  const removeTool = useCallback((toolId: string) => {
+    setTools(prev => prev.filter(t => t.id !== toolId));
+  }, []);
+
+  return {
+    tools,
+    isLoading,
+    error,
+    addTool,
+    removeTool
+  };
+}
+
+```
+
+</example>
+
+<example type="invalid">
+
+**❌ 错误：组件内直接写业务逻辑**
+```tsx
+// ❌ 错误：不要在组件内直接写业务逻辑
+export const ToolManager: React.FC<ToolManagerProps> = ({ initialTools }) => {
+  const [tools, setTools] = useState(initialTools);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // ❌ 不要在组件内直接写复杂逻辑
+  const handleToggleTool = async (toolId: string) => {
+    setIsLoading(true);
+    try {
+      const updatedTool = await api.toggleTool(toolId);
+      setTools(prev => prev.map(tool => 
+        tool.id === toolId ? updatedTool : tool
+      ));
+      await chrome.storage.local.set({ tools });
+    } catch (error) {
+      console.error('Toggle failed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ❌ 不要在组件内直接写搜索逻辑
+  const filteredTools = useMemo(() => {
+    return tools.filter(tool => 
+      tool.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [tools, searchTerm]);
+
+  return <div>{/* JSX */}</div>;
+};
+```
+
+**❌ 错误：混合多种职责和使用 const 定义 Hook**
+```tsx
+// ❌ 错误：一个 Hook 处理多种不相关的逻辑，且使用 const 定义
+const useEverything = () => {
+  const [tools, setTools] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [apiData, setApiData] = useState(null);
+  
+  // 太多不相关的逻辑混合在一起
+  // 应该拆分成独立的 Hook
+  // 且应该使用 function 而不是 const
+};
+```
+
+**❌ 错误：在组件内直接调用 API 和使用 const 定义组件**
+```tsx
+// ❌ 错误：组件内直接处理 API 调用，且使用 const 定义组件
+const ToolManager = () => {
+  const [tools, setTools] = useState([]);
+  
+  // ❌ 不要在组件内直接写 API 调用
+  const handleSave = async () => {
+    const response = await fetch('/api/tools', {
+      method: 'POST',
+      body: JSON.stringify(tools)
+    });
+    // API 处理逻辑应该在 Hook 中
+  };
+
+  return <div>{/* JSX */}</div>;
+  // ❌ 应该使用 function 而不是 const 定义组件
+};
+```
+
+**❌ 错误：忽略错误处理和使用 const 定义 Hook**
+```tsx
+// ❌ 错误：没有错误处理的 Hook，且使用 const 定义
+const useToolData = () => {
+  const [tools, setTools] = useState([]);
+  
+  // ❌ 缺少错误处理
+  const fetchTools = async () => {
+    const data = await api.getTools(); // 可能失败
+    setTools(data);
+  };
+
+  return { tools, fetchTools };
+  // ❌ 应该使用 function 而不是 const 定义 Hook
+};
+  ```
+</example>

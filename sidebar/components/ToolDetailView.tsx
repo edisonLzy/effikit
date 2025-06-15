@@ -1,6 +1,6 @@
 import React from 'react';
 import { Settings, AlertCircle } from 'lucide-react';
-import type { Tool } from '@/lib/types';
+import type { Tool } from '@/sidebar/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

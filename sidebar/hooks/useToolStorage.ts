@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { ToolSettings, EffikitSettings } from '@/lib/types';
+import type { ToolSettings, EffikitSettings } from '@/sidebar/types';
 
 export const useToolStorage = () => {
   const saveToolSettings = useCallback(async (settings: ToolSettings) => {

@@ -1,0 +1,123 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 项目结构规则
+
+## Goal
+
+为Chrome扩展项目建立清晰的目录结构职责规范，确保代码组织的一致性和可维护性。
+
+## Critical Rules
+
+### 核心目录职责
+
+- **`lib/`** - 通用工具库
+  - 存放跨项目可复用的工具函数、类型定义和核心逻辑
+  - 不依赖于特定业务场景的通用功能
+
+- **`sidebar/`** - 侧边栏应用
+  - 扩展的主要用户界面和业务逻辑
+  - 包含侧边栏特定的组件、样式和脚本
+
+- **`sidebar/components/`** - 侧边栏专用组件
+  - 与侧边栏业务逻辑紧密相关的组件
+  - 不适合其他项目复用的业务组件
+
+- **`sidebar/hooks/`** - 侧边栏专用 React Hooks
+  - 处理侧边栏特定的状态管理和业务逻辑
+  - 与侧边栏功能紧密相关的自定义 hooks
+
+- **`hooks/`** - 全局 React Hooks
+  - 存放可在多个组件间复用的 React hooks
+  - 与侧边栏无关的通用 hooks
+
+- **`components/`** - 全局可复用组件
+  - 存放项目内可复用的UI组件
+  - 不依赖特定业务场景的通用组件
+
+- **`components/ui/`** - 基础UI组件
+  - 基于 shadcn/ui 的原子级UI组件
+  - 高度可复用的基础组件如按钮、输入框等
+
+### 静态资源目录
+
+- **`public/`** - 公共静态资源
+  - 存放需要直接访问的静态文件
+  - 如logo、图标等公共资源
+
+- **`images/`** - 扩展图片资源
+  - 存放扩展专用的图标和图片
+  - 如扩展图标、背景图等
+
+### 配置和元数据目录
+
+- **`.cursor/`** - Cursor IDE 配置
+  - 存放 Cursor 编辑器的配置文件
+  - 包含 MCP 配置和项目规则
+
+- **`.cursor/rules/`** - 项目规则文件
+  - 存放项目开发规范和最佳实践
+  - 按功能模块分类的规则文件
+
+- **`.cursor/rules/frontend/`** - 前端开发规则
+  - 前端代码规范和组件开发规则
+
+- **`.cursor/rules/taskmaster/`** - 任务管理规则
+  - TaskMaster 任务管理相关规则
+
+- **`.cursor/rules/workflows/`** - 工作流程规则
+  - 开发工作流程和最佳实践
+
+- **`.taskmaster/`** - TaskMaster 配置
+  - 任务管理工具的配置和数据存储
+
+- **`.taskmaster/docs/`** - 项目文档
+  - 项目需求文档和设计文档
+
+- **`.taskmaster/tasks/`** - 任务文件
+  - 任务定义和跟踪文件
+
+- **`.taskmaster/reports/`** - 任务报告
+  - 任务复杂度分析和进度报告
+
+- **`.taskmaster/templates/`** - 模板文件
+  - 项目模板和示例文件
+
+
+## Examples
+
+<example>
+创建工具管理组件:
+- 路径: `sidebar/components/ToolSettingsPanel.tsx`
+
+创建可复用按钮:
+- 路径: `components/ui/icon-button.tsx`
+
+创建数据处理Hook:
+- 路径: `sidebar/hooks/useToolConfig.ts`
+
+创建通用Hook:
+- 路径: `hooks/useLocalStorage.ts`
+
+创建项目规则:
+- 路径: `.cursor/rules/frontend/component_naming.mdc`
+</example>
+
+<example type="invalid">
+❌ 在根目录创建组件: `ToolPanel.tsx`
+✅ 正确路径: `sidebar/components/ToolPanel.tsx`
+
+❌ Hook放错位置: `sidebar/useToolData.ts`
+✅ 正确路径: `sidebar/hooks/useToolData.ts`
+
+❌ 业务组件放UI目录: `components/ui/ToolManager.tsx`
+✅ 正确路径: `sidebar/components/ToolManager.tsx`
+
+❌ 通用Hook放错位置: `sidebar/hooks/useDebounce.ts`
+✅ 正确路径: `hooks/useDebounce.ts`
+
+❌ 静态资源放错位置: `sidebar/images/logo.png`
+✅ 正确路径: `public/logo.png` 或 `images/logo.png`
+</example>

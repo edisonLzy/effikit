@@ -2,8 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { ToolDetailView } from './ToolDetailView';
 import { ToolTabBar } from './ToolTabBar';
 import { SearchBar } from './SearchBar';
-import { useToolSearch } from '@/lib/hooks/useToolSearch';
-import { useToolManagement } from '@/lib/hooks/useToolManagement';
+import { useToolSearch } from '@/sidebar/hooks/useToolSearch';
+import { useToolManagement } from '@/sidebar/hooks/useToolManagement';
 
 export const ToolManagerPage: React.FC = () => {
   // 🎯 所有逻辑通过 Hook 处理

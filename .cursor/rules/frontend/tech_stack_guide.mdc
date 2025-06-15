@@ -1,0 +1,169 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Frontend Tech Stack
+
+## Goal
+
+定义EffiKit Chrome扩展项目的前端技术栈标准，确保所有代码生成严格遵循指定的技术选型和最佳实践。
+
+## Critical Rules
+
+### **Chrome扩展开发**
+- **Framework**: 使用Extension.js作为构建工具
+- **Manifest**: 严格遵循Manifest V3规范
+- **Browser Support**: 同时支持Chromium和Firefox
+- **Side Panel**: 使用Side Panel API实现侧边栏功能
+- **Permissions**: 使用最小权限原则，仅申请必要权限
+- **Background**: 使用Service Worker替代背景页面
+
+### **React生态系统**
+- **版本**: React 18.3.1及以上
+- **渲染**: 使用ReactDOM.createRoot进行根渲染
+- **模式**: 开发中使用React.StrictMode
+- **JSX**: 使用JSX语法，文件扩展名为.tsx
+- **路由**: 使用React Router DOM 7.6.2进行路由管理
+- **状态管理**: 优先使用React内置hooks（useState、useReducer等）
+
+### **TypeScript配置**
+- **版本**: TypeScript 5.3.3
+- **配置**: 严格模式开启，包含所有严格类型检查
+- **模块系统**: ESNext模块系统
+- **JSX处理**: preserve模式
+- **类型定义**: 包含Chrome API类型定义
+- **路径映射**: 支持@/*路径别名
+
+### **样式系统**
+- **框架**: Tailwind CSS 4.1.10作为主要样式框架
+- **配置**: 使用CSS变量实现主题系统
+- **组件样式**: 结合shadcn/ui的设计系统
+- **预处理**: 使用PostCSS进行样式处理
+- **响应式**: 移动优先的响应式设计原则
+
+### **UI组件库**
+- **主库**: shadcn/ui (New York风格)
+- **基础组件**: Radix UI作为无样式基础组件
+- **图标**: Lucide React作为图标库
+- **工具**: 使用class-variance-authority管理条件样式
+- **合并工具**: tailwind-merge和clsx用于类名处理
+
+### **开发工具**
+- **包管理**: 强制使用pnpm 10.7.0+
+
+### **项目结构**
+- **组件**: /components用于通用组件
+- **样式**: /sidebar/styles.css作为主样式文件
+- **类型**: TypeScript类型定义分布在各模块
+- **路径别名**: @/*指向项目根目录
+
+### **API文档获取**
+- **文档源**: 当遇到API使用错误或需要最新API文档时，必须使用 `Context7 MCP` 获取最新的官方文档
+- **获取方式**: 先使用`resolve-library-id`工具解析库名，再使用`get-library-docs`获取具体文档
+- **适用场景**: Chrome Extension API、React API、TypeScript API、Tailwind CSS API等所有第三方库API
+- **优先级**: Context7 MCP文档 > 本地缓存 > 网络搜索
+- **使用原则**: 确保使用最新版本的API语法和最佳实践
+
+## Examples
+
+<example>
+
+**正确的Chrome API使用**:
+```typescript
+// background.ts
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.sidePanel.setPanelBehavior({
+    openPanelOnActionClick: true
+  });
+});
+
+// 内容脚本
+if (typeof chrome !== 'undefined' && chrome.runtime) {
+  chrome.runtime.sendMessage({ 
+    type: 'DATA_UPDATE',
+    payload: data 
+  });
+}
+```
+
+**正确的样式组织**:
+```tsx
+<div className='w-10 h-10'></div>
+```
+
+**正确的API文档获取流程**:
+```typescript
+// 当遇到Chrome Extension API错误时
+// 1. 使用Context7 MCP获取最新文档
+// 使用 resolve-library-id 工具: 库名 "chrome-extension"
+// 使用 get-library-docs 工具: 获取具体API文档
+
+// 2. 根据最新文档修正API使用
+chrome.sidePanel.setPanelBehavior({
+  openPanelOnActionClick: true
+});
+```
+</example>
+
+<example type="invalid">
+
+**❌ 错误：不合规的Manifest V2语法**:
+```json
+{
+  "manifest_version": 2,
+  "background": {
+    "scripts": ["background.js"]
+  }
+}
+```
+
+**❌ 错误：直接使用内联样式而非Tailwind**:
+
+```tsx
+<div style={{display: 'flex', alignItems: 'center'}}>
+  {/* 应该使用: className="flex items-center" */}
+</div>
+```
+
+**❌ 错误：直接使用外联样式而非Tailwind**:
+
+```tsx
+<div className="main">
+  {/* 应该使用: className="flex items-center" */}
+</div>
+```
+
+```css
+.main {
+    
+}
+```
+
+**❌ 错误：未使用TypeScript类型定义**:
+```javascript
+// .js文件应该是.tsx
+function Component(props) {
+  return <div>{props.children}</div>;
+}
+```
+
+**❌ 错误：不使用shadcn/ui组件而自建基础组件**:
+```tsx
+const Button = ({ children, onClick }) => (
+  <button className="btn" onClick={onClick}>
+    {children}
+  </button>
+);
+// 应该使用: import { Button } from '@/components/ui/button';
+```
+
+**❌ 错误：API使用错误时不查询最新文档**:
+```typescript
+// 错误：直接猜测API用法或使用过时的API
+chrome.browserAction.setPopup(); // 过时的API
+
+// 正确：使用Context7 MCP查询chrome-extension最新文档
+// 然后使用正确的API: chrome.action.setPopup()
+```
+</example>
