@@ -122,6 +122,14 @@
   }
 }
 
+html, body {
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
 /* 滚动条隐藏样式 */
 .scrollbar-none {
   scrollbar-width: none; /* Firefox */
