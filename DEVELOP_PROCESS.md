@@ -339,3 +339,39 @@ pnpm task-master expand --id=2 --prompt='the response json must wrap in markdown
 - 优化用户体验和界面交互
 
 ---
+
+## 清理废弃的hooks文件
+
+### 变更的文件
+1. sidebar/hooks/useToolData.ts - 删除（已被sidebar/hooks/useToolsData.ts替代）
+2. sidebar/hooks/useToolManagement.ts - 删除（功能已整合到其他hooks中）
+3. sidebar/hooks/useToolNavigation.ts - 删除（已被hooks/useNavigation.ts替代）
+4. sidebar/hooks/useToolStorage.ts - 删除（功能已整合到useToolsData中）
+
+### 本次提交的详细内容总结
+本次提交清理了重构过程中产生的废弃hooks文件，这些文件在之前的重构中已被新的实现替代：
+
+1. **代码清理**:
+   - 删除了4个已废弃的hooks文件，避免代码冗余
+   - 这些文件的功能已经在新的架构中得到更好的实现
+   - 保持代码库的整洁性和一致性
+
+2. **架构优化结果**:
+   - `useToolData.ts` 被更完善的 `useToolsData.ts` 替代
+   - `useToolManagement.ts` 的功能被分散到更专用的hooks中
+   - `useToolNavigation.ts` 被全局的 `useNavigation.ts` 替代
+   - `useToolStorage.ts` 的存储功能整合到了数据管理hooks中
+
+3. **维护性提升**:
+   - 移除了重复和冗余的代码
+   - 简化了hooks的依赖关系
+   - 提高了代码的可维护性
+
+这次清理是前几次重构工作的后续整理，确保代码库保持干净和一致的状态。
+
+### 相关问题或需求
+- 清理重构过程中产生的废弃代码
+- 保持代码库的整洁性和一致性
+- 避免开发者混淆新旧实现
+
+---
