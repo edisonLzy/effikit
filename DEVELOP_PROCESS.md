@@ -198,6 +198,54 @@
 8. sidebar/hooks/useToolManagement.ts - 修改
 9. sidebar/hooks/useToolNavigation.ts - 修改
 10. sidebar/hooks/useToolSearch.ts - 修改
+
+---
+
+## 重构侧边栏组件架构，优化错误处理和路由系统
+
+### 变更的文件
+1. sidebar/404.tsx - 新增（404错误页面组件）
+2. sidebar/ErrorBoundary.tsx - 新增（React错误边界组件）
+3. sidebar/components/ErrorTestComponent.tsx - 新增（错误测试组件）
+4. sidebar/components/ErrorDisplay.tsx - 删除（移除旧的错误显示组件）
+5. sidebar/components/SearchBar.tsx - 删除（移除旧的搜索栏组件）
+6. sidebar/components/ToolItem.tsx - 删除（移除旧的工具项组件）
+7. sidebar/components/ToolTab.tsx - 删除（移除旧的工具标签组件）
+8. sidebar/components/ToolTabBar.tsx - 删除（移除旧的工具标签栏组件）
+9. sidebar/home.tsx - 修改（更新主页面组件）
+10. sidebar/routes.tsx - 修改（重构路由配置）
+
+### 本次提交的详细内容总结
+本次提交对侧边栏组件架构进行了重大重构，主要聚焦于错误处理和路由系统优化：
+
+1. **错误处理系统完善**:
+   - 新增ErrorBoundary组件，实现React错误边界功能，提供优雅的错误处理机制
+   - 添加404.tsx页面，处理路由不匹配的情况，提供用户友好的错误页面
+   - 创建ErrorTestComponent用于测试错误边界功能，确保错误处理机制正常工作
+   - 移除了旧的ErrorDisplay组件，统一使用新的错误处理架构
+
+2. **组件架构清理**:
+   - 删除了多个冗余的组件文件（SearchBar、ToolItem、ToolTab、ToolTabBar）
+   - 简化了组件结构，减少了代码重复和维护复杂度
+   - 优化了文件组织结构，提高了代码的可维护性
+
+3. **路由系统重构**:
+   - 更新了routes.tsx配置，整合新的错误处理机制
+   - 修改了home.tsx主页面组件，适配新的组件架构
+   - 确保路由系统与错误边界的正确集成
+
+4. **代码质量提升**:
+   - 移除了不再使用的组件文件，减少了代码库的体积
+   - 统一了错误处理模式，提高了用户体验
+   - 优化了组件依赖关系，降低了耦合度
+
+### 相关问题或需求
+- 提升应用的稳定性和错误处理能力
+- 简化组件架构，提高代码可维护性
+- 优化用户体验，提供更好的错误反馈
+- 为后续功能开发奠定更稳固的基础架构
+
+**技术改进**: 通过引入React错误边界和404页面，显著提升了应用的健壮性和用户体验。
 11. sidebar/hooks/useToolStorage.ts - 修改
 12. .cursor/rules/frontend/chrome_extension_guide.mdc - 修改
 13. .cursor/rules/frontend/project_structure_guide.mdc - 修改
