@@ -3,6 +3,9 @@ import { Layout } from "./layout";
 import { Home } from "./Home";
 import { NotebookLLM } from "./tools/NotebookLLM";
 import { URLEncoder } from "./tools/URLEncoder";
+import { JSONViewer } from "./tools/JSONViewer";
+import { Base64Encoder } from "./tools/Base64Encoder";
+import { ColorPicker } from "./tools/ColorPicker";
 import { NotFoundPage } from "./404";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { ErrorTestComponent } from "./components/ErrorTestComponent";
@@ -16,7 +19,8 @@ import {
   Globe, 
   Hash, 
   Image, 
-  Lock, 
+  Lock,
+  Key, 
   Mail, 
   Music, 
   Palette, 
@@ -60,7 +64,9 @@ import {
   Brush,
   Eraser,
   AlertTriangle,
-  Link
+  Link,
+  Shuffle,
+  Pipette
 } from "lucide-react";
 import { ReactNode } from "react";
 
@@ -137,10 +143,10 @@ export const toolRoutes: RouteObject[] = [
     },
     {
       path:'ColorPalette',
-      element: <PlaceholderTool title="调色板" />,
+      element: <ColorPicker />,
       handle: {
-        label: '调色板',
-        description: '设计师必备的颜色搭配工具',
+        label: '颜色选择器',
+        description: '颜色格式转换、调色板生成和设计配色工具',
         icon: <Palette className="w-4 h-4" />,
       } satisfies RouteHandle
     },
@@ -196,6 +202,24 @@ export const toolRoutes: RouteObject[] = [
         label: 'URL编码',
         description: '对URL进行编码和解码处理，支持中文字符和特殊符号',
         icon: <Link className="w-4 h-4" />,
+      } satisfies RouteHandle
+    },
+    {
+      path:'JSONViewer',
+      element: <JSONViewer />,
+      handle: {
+        label: 'JSON查看器',
+        description: 'JSON格式化、验证、压缩和美化工具',
+        icon: <FileText className="w-4 h-4" />,
+      } satisfies RouteHandle
+    },
+    {
+      path:'Base64Encoder',
+      element: <Base64Encoder />,
+      handle: {
+        label: 'Base64编码',
+        description: '支持文本和图片的Base64编码解码转换',
+        icon: <Key className="w-4 h-4" />,
       } satisfies RouteHandle
     },
     {
