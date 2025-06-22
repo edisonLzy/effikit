@@ -2,6 +2,7 @@ import { createMemoryRouter, RouteObject } from "react-router";
 import { Layout } from "./layout";
 import { Home } from "./Home";
 import { NotebookLLM } from "./tools/NotebookLLM";
+import { URLEncoder } from "./tools/URLEncoder";
 import { NotFoundPage } from "./404";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { ErrorTestComponent } from "./components/ErrorTestComponent";
@@ -58,7 +59,8 @@ import {
   Filter,
   Brush,
   Eraser,
-  AlertTriangle
+  AlertTriangle,
+  Link
 } from "lucide-react";
 import { ReactNode } from "react";
 
@@ -185,6 +187,15 @@ export const toolRoutes: RouteObject[] = [
         label: '哈希生成',
         description: '生成MD5、SHA等各种哈希值',
         icon: <Hash className="w-4 h-4" />,
+      } satisfies RouteHandle
+    },
+    {
+      path:'URLEncoder',
+      element: <URLEncoder />,
+      handle: {
+        label: 'URL编码',
+        description: '对URL进行编码和解码处理，支持中文字符和特殊符号',
+        icon: <Link className="w-4 h-4" />,
       } satisfies RouteHandle
     },
     {
