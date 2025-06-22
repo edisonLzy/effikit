@@ -1,92 +1,8 @@
 import { useRouteError, isRouteErrorResponse, Link } from "react-router";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Home, RefreshCw, Bug, Zap } from "lucide-react";
-
-function Planet({ className, children }: { className?: string; children?: React.ReactNode }) {
-  return (
-    <div className={`absolute rounded-full ${className} hover:scale-110 transition-transform duration-300 cursor-pointer`}>
-      {children}
-    </div>
-  );
-}
-
-function ErrorRobot() {
-  return (
-    <div className="relative w-32 h-40 animate-bounce hover:animate-pulse transition-all duration-300 cursor-pointer group">
-      <svg className="w-full h-full group-hover:scale-105 transition-transform duration-300" viewBox="0 0 128 160" fill="none">
-        {/* 机器人头部 */}
-        <rect x="24" y="20" width="80" height="60" rx="20" fill="#C0C0C0" />
-        <rect x="28" y="24" width="72" height="52" rx="16" fill="#E0E0E0" />
-        
-        {/* 眼睛 - 错误状态 */}
-        <circle cx="45" cy="45" r="8" fill="#FF4444" className="animate-ping group-hover:fill-red-600" />
-        <circle cx="83" cy="45" r="8" fill="#FF4444" className="animate-ping delay-500 group-hover:fill-red-600" />
-        <circle cx="45" cy="45" r="4" fill="#FF0000" className="animate-pulse" />
-        <circle cx="83" cy="45" r="4" fill="#FF0000" className="animate-pulse delay-300" />
-        
-        {/* 嘴巴 - 错误表情 */}
-        <path d="M50 60 Q64 50 78 60" stroke="#666" strokeWidth="2" fill="none" className="group-hover:stroke-red-500" />
-        
-        {/* 身体 */}
-        <rect x="32" y="80" width="64" height="70" rx="10" fill="#B0B0B0" />
-        
-        {/* 胸前错误指示器 */}
-        <rect x="44" y="95" width="40" height="25" rx="5" fill="#333" />
-        <rect x="48" y="99" width="32" height="17" rx="3" fill="#FF4444" className="animate-pulse" />
-        <text x="64" y="110" textAnchor="middle" className="text-xs fill-white font-bold">ERROR</text>
-        
-        {/* 手臂 */}
-        <rect x="12" y="90" width="16" height="40" rx="8" fill="#B0B0B0" className="group-hover:animate-bounce" />
-        <rect x="100" y="90" width="16" height="40" rx="8" fill="#B0B0B0" className="group-hover:animate-bounce delay-200" />
-        
-        {/* 腿部 */}
-        <rect x="40" y="145" width="16" height="25" rx="8" fill="#B0B0B0" />
-        <rect x="72" y="145" width="16" height="25" rx="8" fill="#B0B0B0" />
-        
-        {/* 天线 */}
-        <line x1="64" y1="20" x2="64" y2="10" stroke="#888" strokeWidth="2" />
-        <circle cx="64" cy="8" r="3" fill="#FF4444" className="animate-pulse" />
-        
-        {/* 错误火花 */}
-        <g className="animate-ping">
-          <path d="M20 70 L28 68 L24 76 L32 74" stroke="#FFD700" strokeWidth="2" fill="#FFD700" opacity="0.7" />
-          <path d="M96 85 L104 83 L100 91 L108 89" stroke="#FFD700" strokeWidth="2" fill="#FFD700" opacity="0.7" />
-        </g>
-      </svg>
-      
-      {/* 错误光环效果 */}
-      <div className="absolute inset-0 rounded-full bg-red-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse"></div>
-    </div>
-  );
-}
-
-function FloatingStars() {
-  return (
-    <>
-      {/* 错误主题的红色星星 */}
-      <div className="absolute top-10 left-1/4 w-1 h-1 bg-red-400 rounded-full animate-twinkle hover:scale-150 transition-transform duration-300 cursor-pointer"></div>
-      <div className="absolute top-20 right-1/3 w-1 h-1 bg-yellow-400 rounded-full animate-twinkle delay-1000 hover:scale-150 transition-transform duration-300 cursor-pointer"></div>
-      <div className="absolute bottom-32 left-1/3 w-1 h-1 bg-red-400 rounded-full animate-twinkle delay-2000 hover:scale-150 transition-transform duration-300 cursor-pointer"></div>
-      <div className="absolute bottom-10 right-1/4 w-1 h-1 bg-orange-400 rounded-full animate-twinkle delay-3000 hover:scale-150 transition-transform duration-300 cursor-pointer"></div>
-      <div className="absolute top-1/3 left-10 w-1 h-1 bg-red-400 rounded-full animate-twinkle delay-4000 hover:scale-150 transition-transform duration-300 cursor-pointer"></div>
-      <div className="absolute top-2/3 right-10 w-1 h-1 bg-yellow-400 rounded-full animate-twinkle delay-5000 hover:scale-150 transition-transform duration-300 cursor-pointer"></div>
-    </>
-  );
-}
-
-function ErrorParticles() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* 错误粒子 - 红色和橙色主题 */}
-      <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-red-400/40 rounded-full animate-float-slow"></div>
-      <div className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-orange-400/40 rounded-full animate-float-medium"></div>
-      <div className="absolute bottom-1/4 left-1/3 w-0.5 h-0.5 bg-yellow-400/40 rounded-full animate-float-fast"></div>
-      <div className="absolute bottom-1/3 right-1/3 w-1 h-1 bg-red-400/40 rounded-full animate-float-slow delay-2000"></div>
-      <div className="absolute top-1/2 left-1/6 w-0.5 h-0.5 bg-orange-400/40 rounded-full animate-float-medium delay-1000"></div>
-      <div className="absolute top-2/3 right-1/6 w-1.5 h-1.5 bg-red-400/40 rounded-full animate-float-fast delay-3000"></div>
-    </div>
-  );
-}
+import { AlertTriangle, Home, Zap } from "lucide-react";
+import { SpaceBackground } from "./components/SpaceBackground";
+import { ErrorRobot } from "./components/SpaceCharacters";
 
 export function ErrorBoundary() {
   const error = useRouteError();
@@ -105,39 +21,10 @@ export function ErrorBoundary() {
     errorMessage = "发生了未知错误";
   }
 
-  const handleReload = () => {
-    window.location.reload();
-  };
-
-  const handleReportError = () => {
-    console.error("用户报告错误:", { error, errorMessage, errorStatus });
-    alert("错误已报告，感谢您的反馈！");
-  };
-
   return (
     <div className="relative min-h-screen bg-[#0A0B16] overflow-hidden flex items-center justify-center">
-      {/* 背景粒子效果 */}
-      <ErrorParticles />
-      
-      {/* 浮动星星 */}
-      <FloatingStars />
-      
-      {/* 背景星球 - 错误主题颜色 */}
-      <Planet className="top-20 left-10 w-14 h-14 bg-gradient-to-br from-red-900 to-red-950 animate-orbit-slow hover:from-red-700 hover:to-red-800">
-        <div className="absolute inset-2 rounded-full bg-gradient-to-br from-red-800 to-red-900 animate-pulse"></div>
-      </Planet>
-      
-      <Planet className="top-32 right-20 w-10 h-10 bg-gradient-to-br from-orange-900 to-orange-950 animate-orbit-medium hover:from-orange-700 hover:to-orange-800">
-        <div className="absolute inset-1 rounded-full bg-gradient-to-br from-orange-800 to-orange-900 animate-pulse delay-500"></div>
-      </Planet>
-      
-      <Planet className="bottom-40 left-20 w-16 h-16 bg-gradient-to-br from-red-900 to-red-950 animate-orbit-fast hover:from-red-700 hover:to-red-800">
-        <div className="absolute inset-3 rounded-full bg-gradient-to-br from-red-800 to-red-900 animate-pulse delay-1000"></div>
-      </Planet>
-      
-      <Planet className="bottom-20 right-16 w-12 h-12 bg-gradient-to-br from-yellow-900 to-yellow-950 animate-orbit-slow delay-2000 hover:from-yellow-700 hover:to-yellow-800">
-        <div className="absolute inset-2 rounded-full bg-gradient-to-br from-yellow-800 to-yellow-900 animate-pulse delay-1500"></div>
-      </Planet>
+      {/* 太空背景 - 错误主题 */}
+      <SpaceBackground theme="error" />
       
       {/* 主要内容区域 */}
       <div className="relative z-10 text-center px-4 max-w-2xl mx-auto">
