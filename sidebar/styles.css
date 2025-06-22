@@ -319,4 +319,48 @@ html, body {
   .animate-float-fast {
     animation: float-fast 6s ease-in-out infinite;
   }
+  
+  /* 搜索框边框动画 */
+  @keyframes spin-smooth {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(90deg); }
+    50% { transform: rotate(180deg); }
+    75% { transform: rotate(270deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  @keyframes spin-slow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .animate-spin-smooth {
+    animation: spin-smooth 6s ease-in-out infinite;
+  }
+  
+  .animate-spin-slow {
+    animation: spin-slow 4s linear infinite;
+  }
+  
+  /* 搜索框扩散阴影动画 */
+  @keyframes glow-pulse {
+    0%, 100% { 
+      box-shadow: 
+        0 0 30px rgba(139, 92, 246, 0.4),
+        0 0 60px rgba(16, 185, 129, 0.3),
+        0 0 100px rgba(168, 85, 247, 0.2),
+        0 0 140px rgba(139, 92, 246, 0.1);
+    }
+    50% { 
+      box-shadow: 
+        0 0 50px rgba(139, 92, 246, 0.6),
+        0 0 100px rgba(16, 185, 129, 0.4),
+        0 0 150px rgba(168, 85, 247, 0.3),
+        0 0 200px rgba(139, 92, 246, 0.15);
+    }
+  }
+  
+  .animate-glow-pulse {
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
 }

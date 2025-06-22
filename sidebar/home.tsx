@@ -192,18 +192,30 @@ function SearchBox(props: SearchBoxProps) {
   const { searchTerm, setSearchTerm, isSearching, selectedTool, onKeyDown } = props;
 
   return (
-    <div className="w-96">
+    <div className="w-72 relative overflow-hidden rounded-2xl animate-glow-pulse">
+      {/* 旋转的边框效果 */}
+      <div className="absolute -inset-1 rounded-2xl opacity-75 p-[2px] animate-spin-smooth">
+        <div
+          className="w-full h-full rounded-2xl"
+          style={{
+            background: 'conic-gradient(from 0deg, #8b5cf6, #10b981, #a855f7, #059669, #8b5cf6)',
+            filter: 'blur(0.5px)',
+          }}
+        />
+      </div>
+      
+      {/* 内容容器 - 静止不动 */}
       <div 
         className="
-          bg-gray-800/80 backdrop-blur-xl border-gray-700/50 
-          rounded-2xl shadow-2xl p-4
+          relative z-10
+          bg-gray-800/95 backdrop-blur-xl
+          rounded-2xl shadow-2xl p-4 m-[2px]
           transition-all duration-300
         "
         style={{
           backdropFilter: 'blur(40px)',
           WebkitBackdropFilter: 'blur(40px)',
-          background: 'linear-gradient(135deg, rgba(31,41,55,0.85), rgba(17,24,39,0.9))',
-          borderImage: 'linear-gradient(135deg, rgba(75,85,99,0.6), rgba(55,65,81,0.4)) 1',
+          background: 'linear-gradient(135deg, rgba(31,41,55,0.95), rgba(17,24,39,0.98))',
         }}
       >
         <div className="relative">
