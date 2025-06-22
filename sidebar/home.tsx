@@ -68,7 +68,7 @@ export function Home() {
 
   const handleToolClick = (toolPath: string | undefined) => {
     if (toolPath) {
-      navigate(`/tool/${toolPath}`);
+      navigate(toolPath);
     }
   };
 

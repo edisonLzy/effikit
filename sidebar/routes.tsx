@@ -1,7 +1,10 @@
 import { createMemoryRouter, RouteObject } from "react-router";
 import { Layout } from "./layout";
-import { Home } from "./home";
+import { Home } from "./Home";
 import { NotebookLLM } from "./tools/NotebookLLM";
+import { NotFoundPage } from "./404";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { ErrorTestComponent } from "./components/ErrorTestComponent";
 import { 
   Smile, 
   Calculator, 
@@ -54,7 +57,8 @@ import {
   Layers,
   Filter,
   Brush,
-  Eraser
+  Eraser,
+  AlertTriangle
 } from "lucide-react";
 import { ReactNode } from "react";
 
@@ -82,6 +86,15 @@ export const toolRoutes: RouteObject[] = [
         label: 'NotebookLLM',
         description: '智能笔记助手，帮助您创建和管理知识库',
         icon: <BookOpen className="w-4 h-4" />,
+      } satisfies RouteHandle
+    },
+    {
+      path:'ErrorTest',
+      element: <ErrorTestComponent />,
+      handle: {
+        label: '错误测试',
+        description: '测试错误边界组件的功能',
+        icon: <AlertTriangle className="w-4 h-4" />,
       } satisfies RouteHandle
     },
     {
@@ -531,6 +544,7 @@ export const router = createMemoryRouter([
     {
        path: '/',
        element: <Layout />,
+       errorElement: <ErrorBoundary />,
        children: [
          {
            index: true,
@@ -539,6 +553,10 @@ export const router = createMemoryRouter([
          {
            path: 'tool',
            children: toolRoutes
+         },
+         {
+           path: '*',
+           element: <NotFoundPage />
          }
        ]
     }
