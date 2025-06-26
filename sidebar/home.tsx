@@ -1,10 +1,10 @@
-import { useNavigate } from "react-router";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { Search } from "lucide-react";
-import { generateColorVariants, getRandomHexColor } from "./utils";
-import { useToolsData, type Tool } from "./hooks/useToolsData";
+import { useNavigate } from 'react-router';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Search } from 'lucide-react';
+import { generateColorVariants, getRandomHexColor } from './utils';
+import { useToolsData, type Tool } from './hooks/useToolsData';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
 
 export function Home() {
   
@@ -187,6 +187,7 @@ interface SearchBoxProps {
   selectedTool: Tool | null;
   onKeyDown: (event: React.KeyboardEvent) => void;
 }
+
 function SearchBox(props: SearchBoxProps) {
 
   const { searchTerm, setSearchTerm, isSearching, selectedTool, onKeyDown } = props;
@@ -255,7 +256,6 @@ function SearchBox(props: SearchBoxProps) {
     </div>
   );
 }
-
 
 // 搜索工具 Hook
 function useSearchTool(tools: Tool[]) {

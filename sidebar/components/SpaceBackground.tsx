@@ -9,33 +9,33 @@ interface SpaceBackgroundProps {
 export function SpaceBackground({ theme = 'default' }: SpaceBackgroundProps) {
   const planetColors = theme === 'error' 
     ? {
-        planet1: 'from-red-900 to-red-950 hover:from-red-700 hover:to-red-800',
-        planet2: 'from-orange-900 to-orange-950 hover:from-orange-700 hover:to-orange-800',
-        planet3: 'from-red-900 to-red-950 hover:from-red-700 hover:to-red-800',
-        planet4: 'from-yellow-900 to-yellow-950 hover:from-yellow-700 hover:to-yellow-800',
-        planet5: 'from-red-900 to-red-950 hover:from-red-700 hover:to-red-800',
-        innerColors: {
-          planet1: 'from-red-800 to-red-900',
-          planet2: 'from-orange-800 to-orange-900',
-          planet3: 'from-red-800 to-red-900',
-          planet4: 'from-yellow-800 to-yellow-900',
-          planet5: 'from-red-800 to-red-900'
-        }
+      planet1: 'from-red-900 to-red-950 hover:from-red-700 hover:to-red-800',
+      planet2: 'from-orange-900 to-orange-950 hover:from-orange-700 hover:to-orange-800',
+      planet3: 'from-red-900 to-red-950 hover:from-red-700 hover:to-red-800',
+      planet4: 'from-yellow-900 to-yellow-950 hover:from-yellow-700 hover:to-yellow-800',
+      planet5: 'from-red-900 to-red-950 hover:from-red-700 hover:to-red-800',
+      innerColors: {
+        planet1: 'from-red-800 to-red-900',
+        planet2: 'from-orange-800 to-orange-900',
+        planet3: 'from-red-800 to-red-900',
+        planet4: 'from-yellow-800 to-yellow-900',
+        planet5: 'from-red-800 to-red-900'
       }
+    }
     : {
-        planet1: 'from-red-900 to-red-950 hover:from-red-700 hover:to-red-800',
-        planet2: 'from-purple-900 to-purple-950 hover:from-purple-700 hover:to-purple-800',
-        planet3: 'from-blue-900 to-blue-950 hover:from-blue-700 hover:to-blue-800',
-        planet4: 'from-green-900 to-green-950 hover:from-green-700 hover:to-green-800',
-        planet5: 'from-yellow-900 to-yellow-950 hover:from-yellow-700 hover:to-yellow-800',
-        innerColors: {
-          planet1: 'from-red-800 to-red-900',
-          planet2: 'from-purple-800 to-purple-900',
-          planet3: 'from-blue-800 to-blue-900',
-          planet4: 'from-green-800 to-green-900',
-          planet5: 'from-yellow-800 to-yellow-900'
-        }
-      };
+      planet1: 'from-red-900 to-red-950 hover:from-red-700 hover:to-red-800',
+      planet2: 'from-purple-900 to-purple-950 hover:from-purple-700 hover:to-purple-800',
+      planet3: 'from-blue-900 to-blue-950 hover:from-blue-700 hover:to-blue-800',
+      planet4: 'from-green-900 to-green-950 hover:from-green-700 hover:to-green-800',
+      planet5: 'from-yellow-900 to-yellow-950 hover:from-yellow-700 hover:to-yellow-800',
+      innerColors: {
+        planet1: 'from-red-800 to-red-900',
+        planet2: 'from-purple-800 to-purple-900',
+        planet3: 'from-blue-800 to-blue-900',
+        planet4: 'from-green-800 to-green-900',
+        planet5: 'from-yellow-800 to-yellow-900'
+      }
+    };
 
   return (
     <>
