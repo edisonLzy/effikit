@@ -1,0 +1,30 @@
+{
+  "preferredEditor": "cursor",
+  "checkpointing": { "enabled": true },
+  "telemetry": {
+    "enabled": true,
+    "target": "local",
+    "otlpEndpoint": "http://localhost:16686",
+    "logPrompts": true
+  },
+  "mcpServers": {
+    "context7": {
+      "command": "npx -y @upstash/context7-mcp",
+      "env": {}
+    },
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "$GITHUB_PERSONAL_ACCESS_TOKEN"
+      }
+    }
+  }
+}
