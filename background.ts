@@ -29,16 +29,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-// 基础的网络请求监听器（为后续功能准备）
-chrome.webRequest.onBeforeRequest.addListener(
-  (details) => {
-    // 这里可以添加网络请求监控逻辑
-    console.log('网络请求:', details.url);
-  },
-  { urls: ['<all_urls>'] },
-  ['requestBody']
-);
-
 // 初始化扩展存储
 chrome.runtime.onStartup.addListener(() => {
   chrome.storage.local.get(['effikit_settings'], (result) => {
