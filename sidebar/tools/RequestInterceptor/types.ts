@@ -18,7 +18,6 @@ export interface RequestInterceptorState {
   mockResponses: Map<string, MockResponse>;
 }
 
-
 // share with background.ts
 export interface CapturedRequest {
   url: string; // origin + pathname
@@ -36,7 +35,7 @@ export type UpsertMockResponsePayload = {
   enabled: boolean
   mockData: string // stringified json
   url: string
-}
+};
 
 export interface UpsertMockResponseMessage {
   action: 'UPSERT_MOCK_RESPONSE'

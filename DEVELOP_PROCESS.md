@@ -327,7 +327,7 @@ pnpm task-master expand --id=2 --prompt='the response json must wrap in markdown
    - **现代化样式语言**：统一使用`rounded-2xl`（16px边角半径）
    - **悬停微交互**：添加`hover:scale-[1.02]`和`active:scale-[0.98]`缩放效果
    - **色彩体系优化**：启用工具使用白色背景，禁用工具使用灰色透明背景
-   - **间距和布局优化**：网格间距增加到8单位，增强视觉呼吸感
+   - **间距和布局优化**：网格间距增加到8单位，增强呼吸感
 
 5. **组件架构优化**:
    - 所有组件遵循`function ComponentName()`声明式，替代`const ComponentName =`
@@ -671,3 +671,26 @@ pnpm task-master expand --id=2 --prompt='the response json must wrap in markdown
 - 实现了跨文件、跨模块的消息通信机制，确保数据流的顺畅。
 - 通过标准化消息类型，提升了代码的可读性和可扩展性。
 - 优化了后台脚本的性能，减少了不必要的Tab事件监听重复。
+
+---
+
+## 本次提交内容摘要
+
+**提交时间**: 2025-06-29 03:00:00
+**提交类型**: fix(request-interceptor)
+**提交描述**: Prevent duplicate requests in background script
+
+### 变更的文件
+1. sidebar/tools/RequestInterceptor/_background.ts - 修改（在onBeforeRequest中添加重复数据判断）
+
+### 本次提交的详细内容总结
+本次提交修复了请求拦截器后台脚本中重复捕获网络请求的问题。在`onBeforeRequest`监听器中，新增了对`capturedRequestsMap`中现有请求的检查，确保只有当请求的`normalizedUrl`和`method`组合在当前Tab的请求列表中不存在时，才将其添加到`capturedRequestsMap`中。这有效避免了因多次触发`onBeforeRequest`而导致的重复数据问题，保证了请求列表的准确性和唯一性。
+
+### 相关问题或需求
+- 解决请求拦截器中重复数据的问题。
+- 提高请求捕获的准确性。
+- 优化用户体验，避免显示冗余数据。
+
+**技术亮点**:
+- 在`onBeforeRequest`中引入了基于`normalizedUrl`和`method`的重复性检查。
+- 确保`capturedRequestsMap`中的数据唯一性。

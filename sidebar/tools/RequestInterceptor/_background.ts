@@ -48,8 +48,9 @@ export function initialRequestInterceptorBackground() {
         const normalizedTabUrl = getUriFromUrl(tabUrl);
         //
         const { method, url } = details;
+        const normalizedUrl = getUriFromUrl(url);
         const newRequest: CapturedRequest = {
-          url: getUriFromUrl(url),
+          url: normalizedUrl,
           method,
           tabUrl, // Include tabId
           timestamp: Date.now(),
@@ -63,7 +64,14 @@ export function initialRequestInterceptorBackground() {
         if (!capturedRequestsMap[normalizedTabUrl]) {
           capturedRequestsMap[normalizedTabUrl] = [];
         }
-        capturedRequestsMap[normalizedTabUrl] = [newRequest, ...capturedRequestsMap[normalizedTabUrl]];
+        // Check if the request already exists to prevent duplicates
+        const isDuplicate = capturedRequestsMap[normalizedTabUrl].some(
+          (existingRequest) => existingRequest.url === normalizedUrl && existingRequest.method === method
+        );
+
+        if (!isDuplicate) {
+          capturedRequestsMap[normalizedTabUrl] = [newRequest, ...capturedRequestsMap[normalizedTabUrl]];
+        }
         chrome.storage.local.set({ capturedRequestsMap }); // Persist to storage
       });
       return undefined;
@@ -114,7 +122,10 @@ export function initialRequestInterceptorBackground() {
   chrome.tabs.onActivated.addListener(activeInfo => {
     chrome.tabs.get(activeInfo.tabId, (tab) => {
       if (tab.url) {
+        // 
         const normalizedTabUrl = getUriFromUrl(tab.url);
+        if (normalizedTabUrl.includes('chrome://')) return;
+        //
         const message: TabChangedMessage = {
           action: 'TAB_CHANGED',
           payload: { tabUrl: normalizedTabUrl }
@@ -126,7 +137,10 @@ export function initialRequestInterceptorBackground() {
 
   chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
     if (changeInfo.url && tab.active) {
+      //
       const normalizedTabUrl = getUriFromUrl(changeInfo.url);
+      if (normalizedTabUrl.includes('chrome://')) return;
+      //
       const message: TabChangedMessage = {
         action: 'TAB_CHANGED',
         payload: { tabUrl: normalizedTabUrl }

@@ -79,7 +79,7 @@ export function MockDataDialog(props: MockDataDialogProps) {
 
   const handleSave = () => {
     if (request && isValidJson) {
-      onSave(request.id, mockData, statusCode);
+      onSave(request.url, mockData, statusCode);
       onClose();
     }
   };
@@ -121,7 +121,7 @@ export function MockDataDialog(props: MockDataDialogProps) {
             <div>
               <h2 className="text-lg font-semibold">编辑Mock响应</h2>
               <p className="text-sm text-muted-foreground">
-                {request.method} {request.uri}
+                {request.method} {request.url}
               </p>
             </div>
           </div>
@@ -219,7 +219,7 @@ export function MockDataDialog(props: MockDataDialogProps) {
                 value={mockData}
                 onChange={handleMockDataChange}
                 extensions={[json()]}
-                theme={isDarkTheme ? oneDark : undefined}
+                theme={oneDark}
                 height="300px"
                 placeholder='输入Mock响应数据，例如：{"success": true, "data": "Hello World"}'
                 basicSetup={{

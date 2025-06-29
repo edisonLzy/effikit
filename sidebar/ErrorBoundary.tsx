@@ -1,24 +1,24 @@
-import { useRouteError, isRouteErrorResponse, Link } from "react-router";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, Home, Zap } from "lucide-react";
-import { SpaceBackground } from "./components/SpaceBackground";
-import { ErrorRobot } from "./components/SpaceCharacters";
+import { useRouteError, isRouteErrorResponse, Link } from 'react-router';
+import { AlertTriangle, Home, Zap } from 'lucide-react';
+import { SpaceBackground } from './components/SpaceBackground';
+import { ErrorRobot } from './components/SpaceCharacters';
+import { Button } from '@/components/ui/button';
 
 export function ErrorBoundary() {
   const error = useRouteError();
 
   let errorMessage: string;
-  let errorStatus: string | number = "错误";
+  let errorStatus: string | number = '错误';
 
   if (isRouteErrorResponse(error)) {
     errorStatus = error.status;
-    errorMessage = error.data?.message || error.statusText || "发生了未知错误";
+    errorMessage = error.data?.message || error.statusText || '发生了未知错误';
   } else if (error instanceof Error) {
     errorMessage = error.message;
   } else if (typeof error === 'string') {
     errorMessage = error;
   } else {
-    errorMessage = "发生了未知错误";
+    errorMessage = '发生了未知错误';
   }
 
   return (
@@ -52,7 +52,7 @@ export function ErrorBoundary() {
             SYSTEM ERROR!
           </h1>
           <p className="text-xl text-red-300 uppercase tracking-wide animate-fade-in delay-1500">
-            {errorStatus === 404 ? "Page Not Found" : "Application Error"}
+            {errorStatus === 404 ? 'Page Not Found' : 'Application Error'}
           </p>
         </div>
         
@@ -60,8 +60,8 @@ export function ErrorBoundary() {
         <div className="mb-8 animate-fade-in-up delay-1500">
           <p className="text-white/80 mb-4">
             {errorStatus === 404 
-              ? "您访问的页面在太空中迷失了方向..."
-              : "系统遇到了意外故障，正在尝试修复..."
+              ? '您访问的页面在太空中迷失了方向...'
+              : '系统遇到了意外故障，正在尝试修复...'
             }
           </p>
           

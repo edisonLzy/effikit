@@ -1,9 +1,4 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { 
   Copy, 
   RotateCcw, 
@@ -12,9 +7,12 @@ import {
   Key,
   AlertTriangle,
   Upload,
-  Download,
-  Image as ImageIcon
+  Download
 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 
 type ConversionMode = 'encode' | 'decode';
 
@@ -312,9 +310,9 @@ export function Base64Encoder() {
               className={`
                 min-h-[160px] p-3 border rounded-md font-mono text-sm overflow-auto
                 ${result?.isValid 
-                  ? 'bg-gray-800 border-gray-600 text-white' 
-                  : 'bg-red-900/20 border-red-500/50'
-                }
+      ? 'bg-gray-800 border-gray-600 text-white' 
+      : 'bg-red-900/20 border-red-500/50'
+    }
                 break-all
               `}
             >

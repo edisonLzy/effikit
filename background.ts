@@ -49,5 +49,4 @@ chrome.runtime.onStartup.addListener(() => {
   });
 });
 
-
-initialRequestInterceptorBackground()
+initialRequestInterceptorBackground();
