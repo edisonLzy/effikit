@@ -1,6 +1,6 @@
 # effikit
 
-> An Extension.js example.
+> Vibe Coding: AI for 80% code
 
 ## Available Scripts
 

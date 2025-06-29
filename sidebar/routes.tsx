@@ -55,7 +55,7 @@ import {
   Link
 } from 'lucide-react';
 import { Layout } from './layout';
-import { Home } from './home';
+import { Home } from './Home';
 import { NotebookLLM } from './tools/NotebookLLM';
 import { URLEncoder } from './tools/URLEncoder';
 import { JSONViewer } from './tools/JSONViewer';
