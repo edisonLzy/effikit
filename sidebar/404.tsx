@@ -1,8 +1,8 @@
-import { Link, useNavigate } from "react-router";
-import { Button } from "@/components/ui/button";
-import { Home, ArrowLeft } from "lucide-react";
-import { SpaceBackground } from "./components/SpaceBackground";
-import { Astronaut, Rocket } from "./components/SpaceCharacters";
+import { Link, useNavigate } from 'react-router';
+import { Home, ArrowLeft } from 'lucide-react';
+import { SpaceBackground } from './components/SpaceBackground';
+import { Astronaut, Rocket } from './components/SpaceCharacters';
+import { Button } from '@/components/ui/button';
 
 export function NotFoundPage() {
 

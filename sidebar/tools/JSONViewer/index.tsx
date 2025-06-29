@@ -1,18 +1,17 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { 
   Copy, 
   RotateCcw, 
   FileText,
   Check,
   AlertTriangle,
-  Eye,
   Download,
   Upload
 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 
 export function JSONViewer() {
   const [input, setInput] = useState('');
@@ -28,7 +27,7 @@ export function JSONViewer() {
         isValid: true,
         formatted: JSON.stringify(parsed, null, 2),
         minified: JSON.stringify(parsed),
-        parsed: parsed,
+        parsed,
         size: new Blob([input]).size,
         formattedSize: new Blob([JSON.stringify(parsed, null, 2)]).size,
         error: null
@@ -232,9 +231,9 @@ export function JSONViewer() {
               className={`
                 h-80 p-3 border rounded-md font-mono text-sm overflow-auto
                 ${jsonData?.isValid 
-                  ? 'bg-gray-800 border-gray-600 text-white' 
-                  : 'bg-red-900/20 border-red-500/50'
-                }
+      ? 'bg-gray-800 border-gray-600 text-white' 
+      : 'bg-red-900/20 border-red-500/50'
+    }
               `}
             >
               {jsonData?.isValid ? (

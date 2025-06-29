@@ -1,17 +1,16 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { 
   Copy, 
   RotateCcw, 
   Palette,
   Check,
   Shuffle,
-  Eye,
   Pipette
 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface ColorData {
   hex: string;
@@ -42,7 +41,8 @@ export function ColorPicker() {
       b /= 255;
       const max = Math.max(r, g, b);
       const min = Math.min(r, g, b);
-      let h, s, l = (max + min) / 2;
+      let h, s;
+      const l = (max + min) / 2;
 
       if (max === min) {
         h = s = 0;

@@ -1,5 +1,5 @@
-import { Outlet } from "react-router";
-import { Logo, Profile } from "./header";
+import { Outlet } from 'react-router';
+import { Logo, Profile } from './header';
 
 export function Layout() {
   return (
@@ -12,7 +12,7 @@ export function Layout() {
 
       {/* Main - 滚动区域，占据剩余空间 */}
       <main className="flex-1 overflow-hidden">
-          <Outlet />
+        <Outlet />
       </main>
     </div>
   );
