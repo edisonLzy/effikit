@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
-import type { HttpRequest, InterceptedRequestData } from './types';
+import type { CapturedHttpRequest, CapturedRequest, CapturedRequestMessage, GetCurrentRequestsMessage, TabChangedMessage, UpsertMockResponseMessage } from './types';
 
 export function useRequestInterceptor() {
-  const [requests, setRequests] = useState<HttpRequest[]>([]);
+  const [requests, setRequests] = useState<CapturedHttpRequest[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRequest, setSelectedRequest] = useState<HttpRequest | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<CapturedHttpRequest | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentTabUrl, setCurrentTabUrl] = useState<string | undefined>(undefined);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -14,24 +15,23 @@ export function useRequestInterceptor() {
     if (!debouncedSearchTerm.trim()) {
       return requests;
     }
-    
+
     const term = debouncedSearchTerm.toLowerCase();
-    return requests.filter(request => 
+    return requests.filter(request =>
       request.url.toLowerCase().includes(term) ||
       request.method.toLowerCase().includes(term)
     );
   }, [requests, debouncedSearchTerm]);
 
-  const generateRequestId = useCallback((method: string, url: string) => {
-    return `${method}:${url}`;
-  }, []);
+  const addRequest = (requestData: CapturedRequest) => {
+    // Only add requests that match the current tab's URL
+    if (currentTabUrl && requestData.tabUrl !== currentTabUrl) {
+      return;
+    }
 
-  const addRequest = useCallback((requestData: InterceptedRequestData) => {
-    const id = requestData.requestId || generateRequestId(requestData.method, requestData.url);
-    
     setRequests(prev => {
-      const existingIndex = prev.findIndex(req => req.id === id);
-      
+      const existingIndex = prev.findIndex(req => req.url === requestData.url);
+
       if (existingIndex >= 0) {
         const updated = [...prev];
         updated[existingIndex] = {
@@ -40,32 +40,38 @@ export function useRequestInterceptor() {
         };
         return updated;
       }
-      
-      const newRequest: HttpRequest = {
-        id,
+
+      const newRequest: CapturedHttpRequest = {
         method: requestData.method,
         url: requestData.url,
         timestamp: requestData.timestamp,
         isIntercepted: false,
         isMocked: false,
       };
-      
-      const newRequests = [newRequest, ...prev];
-      return newRequests.slice(0, 100);
-    });
-  }, [generateRequestId]);
 
-  const toggleIntercept = useCallback((requestId: string, isIntercepted: boolean) => {
-    setRequests(prev => 
+      const newRequests = [newRequest, ...prev];
+      return newRequests;
+    });
+  }
+
+  const toggleIntercept = (url: string, isIntercepted: boolean) => {
+
+    const request = requests.find(req => req.url === url)
+    if (!request) {
+      console.error('Request not found')
+      return
+    }
+
+    setRequests(prev =>
       prev.map(request => {
-        if (request.id === requestId) {
+        if (request.url === url) {
           const updated = { ...request, isIntercepted };
-          
+
           if (!isIntercepted) {
             updated.isMocked = false;
             updated.mockData = undefined;
           }
-          
+
           return updated;
         }
         return request;
@@ -73,69 +79,116 @@ export function useRequestInterceptor() {
     );
 
     if (chrome?.runtime?.sendMessage) {
-      chrome.runtime.sendMessage({
-        type: 'UPDATE_INTERCEPT_RULE',
-        payload: { requestId, isIntercepted }
-      }).catch(error => {
+      const upsertMessage: UpsertMockResponseMessage = {
+        action: 'UPSERT_MOCK_RESPONSE',
+        payload: {
+          enabled: isIntercepted,
+          mockData: request.mockData || '',
+          url: request.url,
+        }
+      }
+      chrome.runtime.sendMessage(upsertMessage).catch(error => {
         console.warn('Failed to send intercept rule update:', error);
       });
     }
-  }, []);
+  }
 
-  const updateMockData = useCallback((requestId: string, mockData: string, statusCode = 200) => {
-    setRequests(prev => 
-      prev.map(request => {
-        if (request.id === requestId) {
-          return {
-            ...request,
-            isMocked: true,
-            mockData
-          };
+  const upsertMockData = (url: string, mockData: string) => {
+
+    const request = requests.find(req => req.url === url)
+    if (!request) {
+      console.error('Request not found')
+      return
+    }
+
+    const nextRequests = requests.map(req => {
+      if (req.url === url) {
+        return {
+          ...req,
+          isMocked: true,
+          mockData
         }
-        return request;
-      })
-    );
+      }
+      return req
+    })
+
+    setRequests(nextRequests);
 
     if (chrome?.runtime?.sendMessage) {
-      chrome.runtime.sendMessage({
-        type: 'UPDATE_MOCK_RESPONSE',
-        payload: { 
-          requestId, 
-          mockData, 
-          statusCode
+
+      const updateMockResponseMessage: UpsertMockResponseMessage = {
+        action: 'UPSERT_MOCK_RESPONSE',
+        payload: {
+          mockData,
+          url: request.url,
+          enabled: true
         }
-      }).catch(error => {
+      }
+      chrome.runtime.sendMessage(updateMockResponseMessage).catch(error => {
         console.warn('Failed to send mock response update:', error);
       });
     }
-  }, []);
-
-  const handleSearch = useCallback((term: string) => {
+  }
+  
+  const handleSearch = (term: string) => {
     setSearchTerm(term);
-  }, []);
+  }
 
-  const openMockDialog = useCallback((request: HttpRequest) => {
+  const openMockDialog = (request: CapturedHttpRequest) => {
     setSelectedRequest(request);
     setIsDialogOpen(true);
-  }, []);
+  };
 
-  const closeMockDialog = useCallback(() => {
+  const closeMockDialog = () => {
     setSelectedRequest(null);
     setIsDialogOpen(false);
-  }, []);
+  }
 
-  const clearAllRequests = useCallback(() => {
-    setRequests([]);
-  }, []);
+  const clearAllRequests = () => {
+    if (currentTabUrl) {
+      // Send a message to background to clear requests for this tab
+      chrome.runtime.sendMessage({
+        action: 'CLEAR_REQUESTS',
+        tabUrl: currentTabUrl
+      }).then(() => {
+        setRequests([]);
+      }).catch(error => {
+        console.error('Failed to clear requests:', error);
+      });
+    } else {
+      setRequests([]);
+    }
+  }
+
+  const fetchRequestsForCurrentTab = (tabUrl: string) => {
+    const getCurrentRequestsMessage: GetCurrentRequestsMessage = {
+      action: 'GET_CURRENT_REQUESTS',
+      payload: {
+        tabUrl: tabUrl
+      }
+    }
+    chrome.runtime.sendMessage(getCurrentRequestsMessage).then(response => {
+      setRequests(response.requests);
+    });
+  }
 
   useEffect(() => {
     if (!chrome?.runtime?.onMessage) {
       return;
     }
 
-    const messageListener = (message: any, sender: any, sendResponse: (response?: any) => void) => {
-      if (message.type === 'NEW_REQUEST_INTERCEPTED') {
-        addRequest(message.payload);
+    const messageListener = (message: CapturedRequestMessage | TabChangedMessage) => {
+
+      console.log('message', message);
+
+      if (message.action === 'NEW_REQUEST_FOUND') {
+        addRequest((message as CapturedRequestMessage).request);
+        return 
+      } 
+      
+      if (message.action === 'TAB_CHANGED') {
+        fetchRequestsForCurrentTab(message.payload.tabUrl)
+        return;
       }
     };
 
@@ -146,20 +199,6 @@ export function useRequestInterceptor() {
         chrome.runtime.onMessage.removeListener(messageListener);
       }
     };
-  }, [addRequest]);
-
-  useEffect(() => {
-    if (chrome?.runtime?.sendMessage) {
-      chrome.runtime.sendMessage({
-        type: 'GET_CURRENT_REQUESTS'
-      }).then(response => {
-        if (response?.requests) {
-          setRequests(response.requests);
-        }
-      }).catch(error => {
-        console.warn('Failed to get current requests:', error);
-      });
-    }
   }, []);
 
   return {
@@ -169,7 +208,7 @@ export function useRequestInterceptor() {
     selectedRequest,
     isDialogOpen,
     toggleIntercept,
-    updateMockData,
+    upsertMockData,
     handleSearch,
     openMockDialog,
     closeMockDialog,

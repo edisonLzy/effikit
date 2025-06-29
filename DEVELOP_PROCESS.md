@@ -635,3 +635,39 @@ pnpm task-master expand --id=2 --prompt='the response json must wrap in markdown
 - 高效的Base64编解码处理机制
 - 实时JSON语法解析和错误定位
 - 统一的用户界面和交互设计语言
+
+---
+
+## 优化请求拦截器：将Tab事件处理移至后台脚本
+
+**提交时间**: 2024-06-29 03:00:00
+**提交类型**: refactor(request-interceptor)
+**提交描述**: 将Tab激活和更新事件监听器以及相关消息处理逻辑从`background.ts`移动到`sidebar/tools/RequestInterceptor/_background.ts`，并标准化`TAB_UPDATED`消息类型。
+
+### 变更的文件
+1. background.ts - 修改（移除Tab事件监听和相关消息处理）
+2. lib/constants.ts - 修改（新增`TAB_UPDATED`、`GET_CURRENT_REQUESTS`、`CLEAR_REQUESTS`、`NEW_REQUEST_FOUND`消息类型）
+3. sidebar/tools/RequestInterceptor/_background.ts - 修改（新增Tab事件监听和相关消息处理，处理`GET_CURRENT_REQUESTS`和`CLEAR_REQUESTS`消息）
+4. sidebar/tools/RequestInterceptor/types.ts - 修改（移除`TabChangedMessage`，确保`TabUpdatedMessage`正确定义）
+5. sidebar/tools/RequestInterceptor/useRequestInterceptor.ts - 修改（监听`TAB_UPDATED`消息，移除旧的Tab事件监听）
+
+### 本次提交的详细内容总结
+本次提交旨在优化EffiKit扩展的请求拦截器模块，通过将Tab事件处理逻辑集中到`sidebar/tools/RequestInterceptor/_background.ts`，实现了更清晰的职责分离和代码组织。
+
+1. **职责分离**: 将与请求拦截器相关的Tab事件监听（`chrome.tabs.onActivated`和`chrome.tabs.onUpdated`）从主`background.ts`文件迁移到`_background.ts`，使主后台脚本更专注于核心扩展逻辑。
+
+2. **消息处理集中**: `_background.ts`现在负责处理来自侧边栏的`GET_CURRENT_REQUESTS`和`CLEAR_REQUESTS`消息，统一管理与请求数据相关的操作。
+
+3. **消息类型标准化**: 在`lib/constants.ts`中定义了新的消息类型，并在所有相关文件中统一使用`TAB_UPDATED`来表示Tab的激活和更新事件，提高了消息通信的一致性和可维护性。
+
+4. **代码精简与优化**: `background.ts`的代码量减少，逻辑更简洁。`useRequestInterceptor.ts`不再需要直接监听Tab事件，而是通过接收`TAB_UPDATED`消息来更新`currentTabUrl`，简化了React Hook的内部逻辑。
+
+### 相关问题或需求
+- 优化请求拦截器模块的代码结构和可维护性。
+- 确保Tab切换和更新时，请求拦截器能够正确获取和显示当前Tab的请求数据。
+- 遵循项目规范，实现更清晰的模块职责划分。
+
+**技术亮点**:
+- 实现了跨文件、跨模块的消息通信机制，确保数据流的顺畅。
+- 通过标准化消息类型，提升了代码的可读性和可扩展性。
+- 优化了后台脚本的性能，减少了不必要的Tab事件监听重复。

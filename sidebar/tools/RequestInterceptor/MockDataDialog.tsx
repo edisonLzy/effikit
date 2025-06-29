@@ -6,12 +6,12 @@ import { X, Save, Code, AlertTriangle, Wand2, Copy, Check } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
 import { oneDark } from '@codemirror/theme-one-dark';
-import type { HttpRequest } from './types';
+import type { CapturedHttpRequest } from './types';
 
 interface MockDataDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  request: HttpRequest | null;
+  request: CapturedHttpRequest | null;
   onSave: (requestId: string, mockData: string, statusCode?: number) => void;
 }
 
@@ -121,7 +121,7 @@ export function MockDataDialog(props: MockDataDialogProps) {
             <div>
               <h2 className="text-lg font-semibold">编辑Mock响应</h2>
               <p className="text-sm text-muted-foreground">
-                {request.method} {request.url}
+                {request.method} {request.uri}
               </p>
             </div>
           </div>

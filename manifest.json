@@ -19,10 +19,11 @@
   "permissions": [
     "sidePanel",
     "activeTab",
+    "tabs",
     "storage",
     "webRequest",
     "declarativeNetRequest",
-    "declarativeNetRequestWithHostAccess"
+    "declarativeNetRequestFeedback"
   ],
   "background": {
     "service_worker": "background.ts"
