@@ -1,13 +1,12 @@
 import React from 'react';
+import { Edit, Search, Globe, Activity, AlertCircle, CheckCircle, Trash2 } from 'lucide-react';
+import { useRequestInterceptor } from './useRequestInterceptor';
+import { MockDataDialog } from './MockDataDialog';
+import type { CapturedHttpRequest } from './types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Search, Globe, Activity, AlertCircle, CheckCircle, Zap } from 'lucide-react';
-import { useRequestInterceptor } from './useRequestInterceptor';
-import { MockDataDialog } from './MockDataDialog';
-
-import type { CapturedHttpRequest } from './types';
 
 export function RequestInterceptor() {
   const {
@@ -19,7 +18,8 @@ export function RequestInterceptor() {
     upsertMockData,
     handleSearch,
     openMockDialog,
-    closeMockDialog
+    closeMockDialog,
+    clearAllRequests
   } = useRequestInterceptor();
 
   const getMethodColor = (method: string) => {
@@ -57,6 +57,15 @@ export function RequestInterceptor() {
             <Badge variant="secondary" className="text-xs">
               {filteredRequests.length} 个请求
             </Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllRequests}
+              className="h-7 px-2 text-xs"
+            >
+              <Trash2 className="w-3 h-3 mr-1" />
+              清空
+            </Button>
           </div>
         </div>
 
@@ -144,7 +153,6 @@ export function RequestInterceptor() {
           />
         </div>
       </div>
-      
 
       {/* Mock数据编辑弹窗 */}
       <MockDataDialog

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
+import type { CapturedHttpRequest, CapturedRequest, CapturedRequestMessage, ClearRequestsMessage, GetCurrentRequestsMessage, TabChangedMessage, UpsertMockResponseMessage } from './types';
 import { useDebounce } from '@/hooks/useDebounce';
-import type { CapturedHttpRequest, CapturedRequest, CapturedRequestMessage, GetCurrentRequestsMessage, TabChangedMessage, UpsertMockResponseMessage } from './types';
 
 export function useRequestInterceptor() {
   const [requests, setRequests] = useState<CapturedHttpRequest[]>([]);
@@ -52,14 +52,14 @@ export function useRequestInterceptor() {
       const newRequests = [newRequest, ...prev];
       return newRequests;
     });
-  }
+  };
 
   const toggleIntercept = (url: string, isIntercepted: boolean) => {
 
-    const request = requests.find(req => req.url === url)
+    const request = requests.find(req => req.url === url);
     if (!request) {
-      console.error('Request not found')
-      return
+      console.error('Request not found');
+      return;
     }
 
     setRequests(prev =>
@@ -86,19 +86,19 @@ export function useRequestInterceptor() {
           mockData: request.mockData || '',
           url: request.url,
         }
-      }
+      };
       chrome.runtime.sendMessage(upsertMessage).catch(error => {
         console.warn('Failed to send intercept rule update:', error);
       });
     }
-  }
+  };
 
   const upsertMockData = (url: string, mockData: string) => {
 
-    const request = requests.find(req => req.url === url)
+    const request = requests.find(req => req.url === url);
     if (!request) {
-      console.error('Request not found')
-      return
+      console.error('Request not found');
+      return;
     }
 
     const nextRequests = requests.map(req => {
@@ -107,10 +107,10 @@ export function useRequestInterceptor() {
           ...req,
           isMocked: true,
           mockData
-        }
+        };
       }
-      return req
-    })
+      return req;
+    });
 
     setRequests(nextRequests);
 
@@ -123,16 +123,16 @@ export function useRequestInterceptor() {
           url: request.url,
           enabled: true
         }
-      }
+      };
       chrome.runtime.sendMessage(updateMockResponseMessage).catch(error => {
         console.warn('Failed to send mock response update:', error);
       });
     }
-  }
+  };
   
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-  }
+  };
 
   const openMockDialog = (request: CapturedHttpRequest) => {
     setSelectedRequest(request);
@@ -142,15 +142,18 @@ export function useRequestInterceptor() {
   const closeMockDialog = () => {
     setSelectedRequest(null);
     setIsDialogOpen(false);
-  }
+  };
 
   const clearAllRequests = () => {
     if (currentTabUrl) {
       // Send a message to background to clear requests for this tab
-      chrome.runtime.sendMessage({
+      const clearRequestsMessage: ClearRequestsMessage = {
         action: 'CLEAR_REQUESTS',
-        tabUrl: currentTabUrl
-      }).then(() => {
+        payload: {
+          tabUrl: currentTabUrl
+        }
+      };
+      chrome.runtime.sendMessage(clearRequestsMessage).then(() => {
         setRequests([]);
       }).catch(error => {
         console.error('Failed to clear requests:', error);
@@ -158,19 +161,21 @@ export function useRequestInterceptor() {
     } else {
       setRequests([]);
     }
-  }
+  };
 
-  const fetchRequestsForCurrentTab = (tabUrl: string) => {
+  const handleTabChanged = (tabUrl: string) => {
     const getCurrentRequestsMessage: GetCurrentRequestsMessage = {
       action: 'GET_CURRENT_REQUESTS',
       payload: {
-        tabUrl: tabUrl
+        tabUrl
       }
-    }
+    };
     chrome.runtime.sendMessage(getCurrentRequestsMessage).then(response => {
       setRequests(response.requests);
     });
-  }
+
+    setCurrentTabUrl(tabUrl);
+  };
 
   useEffect(() => {
     if (!chrome?.runtime?.onMessage) {
@@ -183,11 +188,11 @@ export function useRequestInterceptor() {
 
       if (message.action === 'NEW_REQUEST_FOUND') {
         addRequest((message as CapturedRequestMessage).request);
-        return 
+        return; 
       } 
       
       if (message.action === 'TAB_CHANGED') {
-        fetchRequestsForCurrentTab(message.payload.tabUrl)
+        handleTabChanged(message.payload.tabUrl);
         return;
       }
     };

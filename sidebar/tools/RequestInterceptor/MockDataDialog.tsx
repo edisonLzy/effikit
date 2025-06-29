@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { X, Save, Code, AlertTriangle, Wand2, Copy, Check } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
 import { oneDark } from '@codemirror/theme-one-dark';
 import type { CapturedHttpRequest } from './types';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface MockDataDialogProps {
   isOpen: boolean;
@@ -20,7 +20,7 @@ export function MockDataDialog(props: MockDataDialogProps) {
   const [mockData, setMockData] = useState('');
   const [statusCode, setStatusCode] = useState(200);
   const [isValidJson, setIsValidJson] = useState(true);
-  const [isDarkTheme, setIsDarkTheme] = useState(true);
+  
   const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
