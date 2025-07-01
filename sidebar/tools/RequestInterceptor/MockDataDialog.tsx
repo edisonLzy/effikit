@@ -5,20 +5,18 @@ import { json } from '@codemirror/lang-json';
 import { oneDark } from '@codemirror/theme-one-dark';
 import type { CapturedHttpRequest } from './types';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 interface MockDataDialogProps {
   isOpen: boolean;
   onClose: () => void;
   request: CapturedHttpRequest | null;
-  onSave: (requestId: string, mockData: string, statusCode?: number) => void;
+  onSave: (requestId: string, mockData: string) => void;
 }
 
 export function MockDataDialog(props: MockDataDialogProps) {
   const { isOpen, onClose, request, onSave } = props;
   const [mockData, setMockData] = useState('');
-  const [statusCode, setStatusCode] = useState(200);
   const [isValidJson, setIsValidJson] = useState(true);
   
   const [isCopied, setIsCopied] = useState(false);
@@ -26,7 +24,6 @@ export function MockDataDialog(props: MockDataDialogProps) {
   useEffect(() => {
     if (request) {
       setMockData(request.mockData || '');
-      setStatusCode(200);
     }
   }, [request]);
 
@@ -79,14 +76,13 @@ export function MockDataDialog(props: MockDataDialogProps) {
 
   const handleSave = () => {
     if (request && isValidJson) {
-      onSave(request.url, mockData, statusCode);
+      onSave(request.url, mockData);
       onClose();
     }
   };
 
   const handleClose = () => {
     setMockData('');
-    setStatusCode(200);
     setIsValidJson(true);
     setIsCopied(false);
     onClose();
@@ -137,20 +133,6 @@ export function MockDataDialog(props: MockDataDialogProps) {
 
         {/* 表单内容 - 可滚动区域 */}
         <div className="flex-1 p-4 space-y-4 overflow-auto min-h-0">
-          {/* 状态码 */}
-          <div className="space-y-2">
-            <Label htmlFor="statusCode" className="text-sm font-medium">HTTP状态码</Label>
-            <Input
-              id="statusCode"
-              type="number"
-              value={statusCode}
-              onChange={(e) => setStatusCode(Number(e.target.value))}
-              placeholder="200"
-              min="100"
-              max="599"
-              className="w-32"
-            />
-          </div>
 
           {/* Mock数据 */}
           <div className="space-y-3">
@@ -265,4 +247,4 @@ export function MockDataDialog(props: MockDataDialogProps) {
       </div>
     </div>
   );
-} 
+}

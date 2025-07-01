@@ -8,7 +8,7 @@ export interface CapturedHttpRequest {
 }
 
 export interface MockResponse {
-  statusCode: number;
+  
   body: string;
 }
 

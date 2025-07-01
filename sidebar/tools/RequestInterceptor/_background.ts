@@ -94,6 +94,7 @@ export function initialRequestInterceptorBackground() {
           sendResponse({ success: true });
         })
         .catch((error) => {
+          console.log('error', error);
           sendResponse({ success: false, error: error.message });
         });
       return true;
@@ -169,7 +170,8 @@ export function initialRequestInterceptorBackground() {
 
     // Base64 encode the response body
     const contentType = 'application/json'; // Default content type
-    const encodedBody = btoa(mockData);
+    // To handle Unicode characters correctly, we need to encode them first.
+    const encodedBody = btoa(unescape(encodeURIComponent(mockData)));
     const dataUrl = `data:${contentType};base64,${encodedBody}`;
     //
     const id = stringToHash(url);
