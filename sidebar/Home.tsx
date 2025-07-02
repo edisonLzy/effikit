@@ -48,7 +48,7 @@ export function Home() {
     return tools.map((tool) => {
       // 随机生成大小 (1-2列，1-2行)
       const cols = Math.floor(Math.random() * 2) + 1;
-      const rows = Math.floor(Math.random() * 2) + 1;
+      const rows = Math.floor(Math.random() * 1) + 1;
       
       // 随机生成颜色
       const baseColor = getRandomHexColor();
@@ -172,7 +172,7 @@ function ToolCard(props: ToolCardProps) {
         <div className="text-xl flex items-center justify-center">
           {tool.icon}
         </div>
-        <div className="font-medium text-gray-700 text-xs leading-tight">
+        <div className="font-medium text-xs leading-tight">
           {tool.label}
         </div>
       </div>
@@ -193,7 +193,7 @@ function SearchBox(props: SearchBoxProps) {
   const { searchTerm, setSearchTerm, isSearching, selectedTool, onKeyDown } = props;
 
   return (
-    <div className="w-72 relative overflow-hidden rounded-2xl animate-glow-pulse">
+    <div className="w-72 relative overflow-hidden rounded-2xl animate-glow-pulse text-xl">
       {/* 旋转的边框效果 */}
       <div className="absolute -inset-1 rounded-2xl opacity-75 p-[2px] animate-spin-smooth">
         <div
@@ -209,15 +209,12 @@ function SearchBox(props: SearchBoxProps) {
       <div 
         className="
           relative z-10
-          bg-gray-800/95 backdrop-blur-xl
-          rounded-2xl shadow-2xl p-4 m-[2px]
+          backdrop-blur-xl
+          rounded-2xl shadow-2xl m-[2px]
           transition-all duration-300
+          bg-background
+          opacity-90
         "
-        style={{
-          backdropFilter: 'blur(40px)',
-          WebkitBackdropFilter: 'blur(40px)',
-          background: 'linear-gradient(135deg, rgba(31,41,55,0.95), rgba(17,24,39,0.98))',
-        }}
       >
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -231,7 +228,6 @@ function SearchBox(props: SearchBoxProps) {
               pl-10 pr-4 py-2 w-full
               bg-transparent border-none
               focus:ring-0 focus:outline-none focus-visible:outline-none
-              text-gray-100 placeholder-gray-500
               selection:bg-blue-500/30
             "
             style={{
@@ -243,7 +239,7 @@ function SearchBox(props: SearchBoxProps) {
         
         {/* 搜索提示 */}
         {isSearching && (
-          <div className="mt-2 text-xs text-gray-400 text-center">
+          <div className="mt-2 text-xs text-gray-400 text-center p-2">
             使用方向键选择，Enter确认
             {selectedTool && (
               <span className="ml-2 text-blue-400 font-medium">

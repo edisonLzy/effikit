@@ -1,6 +1,5 @@
 {
-  "chromium:manifest_version": 3,
-  "firefox:manifest_version": 2,
+  "manifest_version": 3,
   "version": "0.0.1",
   "name": "EffiKit - 开发工具集成平台",
   "author": "EffiKit Team",
@@ -8,46 +7,28 @@
   "icons": {
     "48": "images/extension_48.png"
   },
-  "chromium:action": {
+  "action": {
     "default_icon": {
       "48": "images/extension_48.png"
     },
     "default_title": "打开 EffiKit 开发工具"
   },
-  "firefox:browser_action": {
-    "default_icon": {
-      "48": "images/extension_48.png"
-    },
-    "default_title": "打开 EffiKit 开发工具"
+  "side_panel": {
+    "default_path": "sidebar/index.html"
   },
-  "chromium:side_panel": {
-    "default_path": "sidebar/index.html",
-    "default_title": "EffiKit 开发工具"
-  },
-  "firefox:sidebar_action": {
-    "default_panel": "sidebar/index.html",
-    "default_title": "EffiKit 开发工具"
-  },
-  "chromium:permissions": [
+  "permissions": [
     "sidePanel",
     "activeTab",
-    "storage",
-    "webRequest",
-    "webRequestBlocking"
-  ],
-  "firefox:permissions": [
     "tabs",
     "storage",
     "webRequest",
-    "webRequestBlocking",
-    "<all_urls>"
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback"
   ],
   "background": {
-    "chromium:service_worker": "background.ts",
-    "firefox:scripts": [
-      "background.ts"
-    ]
+    "service_worker": "background.ts"
   },
+  
   "host_permissions": [
     "<all_urls>"
   ]

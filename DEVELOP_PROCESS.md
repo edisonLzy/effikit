@@ -327,7 +327,7 @@ pnpm task-master expand --id=2 --prompt='the response json must wrap in markdown
    - **现代化样式语言**：统一使用`rounded-2xl`（16px边角半径）
    - **悬停微交互**：添加`hover:scale-[1.02]`和`active:scale-[0.98]`缩放效果
    - **色彩体系优化**：启用工具使用白色背景，禁用工具使用灰色透明背景
-   - **间距和布局优化**：网格间距增加到8单位，增强视觉呼吸感
+   - **间距和布局优化**：网格间距增加到8单位，增强呼吸感
 
 5. **组件架构优化**:
    - 所有组件遵循`function ComponentName()`声明式，替代`const ComponentName =`
@@ -637,39 +637,60 @@ pnpm task-master expand --id=2 --prompt='the response json must wrap in markdown
 - 统一的用户界面和交互设计语言
 
 ---
-## fix(lint): 修复 ESLint 错误并格式化代码
 
-**提交时间**: 2025-06-26
+## 优化请求拦截器：将Tab事件处理移至后台脚本
+
+**提交时间**: 2024-06-29 03:00:00
+**提交类型**: refactor(request-interceptor)
+**提交描述**: 将Tab激活和更新事件监听器以及相关消息处理逻辑从`background.ts`移动到`sidebar/tools/RequestInterceptor/_background.ts`，并标准化`TAB_UPDATED`消息类型。
 
 ### 变更的文件
-1.  `components/ui/badge.tsx` - 修改 (代码格式化)
-2.  `components/ui/dropdown-menu.tsx` - 修改 (代码格式化)
-3.  `sidebar/404.tsx` - 修改 (代码格式化)
-4.  `sidebar/ErrorBoundary.tsx` - 修改 (代码格式化)
-5.  `sidebar/components/ErrorTestComponent.tsx` - 修改 (代码格式化)
-6.  `sidebar/components/SpaceBackground.tsx` - 修改 (代码格式化)
-7.  `sidebar/home.tsx` - 修改 (代码格式化)
-8.  `sidebar/layout/index.tsx` - 修改 (代码格式化)
-9.  `sidebar/routes.tsx` - 修改 (代码格式化)
-10. `sidebar/scripts.tsx` - 修改 (代码格式化)
-11. `sidebar/tools/Base64Encoder/index.tsx` - 修改 (代码格式化)
-12. `sidebar/tools/ColorPicker/index.tsx` - 修改 (修复 `prefer-const` 错误并格式化)
-13. `sidebar/tools/JSONViewer/index.tsx` - 修改 (代码格式化)
-14. `sidebar/tools/URLEncoder/index.tsx` - 修改 (代码格式化)
-15. `sidebar/utils.ts` - 修改 (代码格式化)
+1. background.ts - 修改（移除Tab事件监听和相关消息处理）
+2. lib/constants.ts - 修改（新增`TAB_UPDATED`、`GET_CURRENT_REQUESTS`、`CLEAR_REQUESTS`、`NEW_REQUEST_FOUND`消息类型）
+3. sidebar/tools/RequestInterceptor/_background.ts - 修改（新增Tab事件监听和相关消息处理，处理`GET_CURRENT_REQUESTS`和`CLEAR_REQUESTS`消息）
+4. sidebar/tools/RequestInterceptor/types.ts - 修改（移除`TabChangedMessage`，确保`TabUpdatedMessage`正确定义）
+5. sidebar/tools/RequestInterceptor/useRequestInterceptor.ts - 修改（监听`TAB_UPDATED`消息，移除旧的Tab事件监听）
 
 ### 本次提交的详细内容总结
-本次提交主要解决了项目中的 ESLint 错误，并对整个代码库进行了格式化，以确保代码风格的一致性。
+本次提交旨在优化EffiKit扩展的请求拦截器模块，通过将Tab事件处理逻辑集中到`sidebar/tools/RequestInterceptor/_background.ts`，实现了更清晰的职责分离和代码组织。
 
-1.  **修复 ESLint 错误**:
-    -   在 `sidebar/tools/ColorPicker/index.tsx` 文件中，修复了一个 `prefer-const` 错误。变量 `l` 被声明为 `let` 但从未被重新赋值，现已更改为 `const`，符合 ESLint 规则。
+1. **职责分离**: 将与请求拦截器相关的Tab事件监听（`chrome.tabs.onActivated`和`chrome.tabs.onUpdated`）从主`background.ts`文件迁移到`_background.ts`，使主后台脚本更专注于核心扩展逻辑。
 
-2.  **代码格式化**:
-    -   执行 `eslint . --fix` 命令，对项目中的多个 `.tsx` 和 `.ts` 文件进行了自动格式化。
-    -   主要格式化内容包括：将双引号统一为单引号，调整了缩进和空格，确保了代码风格的统一。
+2. **消息处理集中**: `_background.ts`现在负责处理来自侧边栏的`GET_CURRENT_REQUESTS`和`CLEAR_REQUESTS`消息，统一管理与请求数据相关的操作。
+
+3. **消息类型标准化**: 在`lib/constants.ts`中定义了新的消息类型，并在所有相关文件中统一使用`TAB_UPDATED`来表示Tab的激活和更新事件，提高了消息通信的一致性和可维护性。
+
+4. **代码精简与优化**: `background.ts`的代码量减少，逻辑更简洁。`useRequestInterceptor.ts`不再需要直接监听Tab事件，而是通过接收`TAB_UPDATED`消息来更新`currentTabUrl`，简化了React Hook的内部逻辑。
 
 ### 相关问题或需求
-- 解决 `pnpm lint:fix` 命令执行失败的问题。
-- 提升代码质量和可读性，确保 CI/CD 流程顺利进行。
+- 优化请求拦截器模块的代码结构和可维护性。
+- 确保Tab切换和更新时，请求拦截器能够正确获取和显示当前Tab的请求数据。
+- 遵循项目规范，实现更清晰的模块职责划分。
+
+**技术亮点**:
+- 实现了跨文件、跨模块的消息通信机制，确保数据流的顺畅。
+- 通过标准化消息类型，提升了代码的可读性和可扩展性。
+- 优化了后台脚本的性能，减少了不必要的Tab事件监听重复。
 
 ---
+
+## 本次提交内容摘要
+
+**提交时间**: 2025-06-29 03:00:00
+**提交类型**: fix(request-interceptor)
+**提交描述**: Prevent duplicate requests in background script
+
+### 变更的文件
+1. sidebar/tools/RequestInterceptor/_background.ts - 修改（在onBeforeRequest中添加重复数据判断）
+
+### 本次提交的详细内容总结
+本次提交修复了请求拦截器后台脚本中重复捕获网络请求的问题。在`onBeforeRequest`监听器中，新增了对`capturedRequestsMap`中现有请求的检查，确保只有当请求的`normalizedUrl`和`method`组合在当前Tab的请求列表中不存在时，才将其添加到`capturedRequestsMap`中。这有效避免了因多次触发`onBeforeRequest`而导致的重复数据问题，保证了请求列表的准确性和唯一性。
+
+### 相关问题或需求
+- 解决请求拦截器中重复数据的问题。
+- 提高请求捕获的准确性。
+- 优化用户体验，避免显示冗余数据。
+
+**技术亮点**:
+- 在`onBeforeRequest`中引入了基于`normalizedUrl`和`method`的重复性检查。
+- 确保`capturedRequestsMap`中的数据唯一性。

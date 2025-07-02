@@ -1,3 +1,6 @@
+import { CONSTANTS } from './lib/constants';
+import { initialRequestInterceptorBackground } from './sidebar/tools/RequestInterceptor/_background';
+
 // 处理扩展图标点击事件
 chrome.action.onClicked.addListener(() => {
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
@@ -14,30 +17,20 @@ chrome.runtime.onInstalled.addListener((details) => {
 
 // 监听来自侧边栏的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'getStorageData') {
+  if (request.action === CONSTANTS.COMMON.MESSAGE_TYPES.GET_STORAGE_DATA) {
     chrome.storage.local.get(null, (data) => {
       sendResponse(data);
     });
     return true; // 保持消息通道开放
   }
-  
-  if (request.action === 'setStorageData') {
+
+  if (request.action === CONSTANTS.COMMON.MESSAGE_TYPES.SET_STORAGE_DATA) {
     chrome.storage.local.set(request.data, () => {
       sendResponse({ success: true });
     });
     return true;
   }
 });
-
-// 基础的网络请求监听器（为后续功能准备）
-chrome.webRequest.onBeforeRequest.addListener(
-  (details) => {
-    // 这里可以添加网络请求监控逻辑
-    console.log('网络请求:', details.url);
-  },
-  { urls: ['<all_urls>'] },
-  ['requestBody']
-);
 
 // 初始化扩展存储
 chrome.runtime.onStartup.addListener(() => {
@@ -55,3 +48,5 @@ chrome.runtime.onStartup.addListener(() => {
     }
   });
 });
+
+initialRequestInterceptorBackground();
