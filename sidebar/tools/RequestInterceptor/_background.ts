@@ -186,7 +186,7 @@ export function initialRequestInterceptorBackground() {
         },
       },
       condition: {
-        urlFilter: url,
+        urlFilter: `|${url}|`,
         resourceTypes: [chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST],
       },
     };
