@@ -694,3 +694,38 @@ pnpm task-master expand --id=2 --prompt='the response json must wrap in markdown
 **技术亮点**:
 - 在`onBeforeRequest`中引入了基于`normalizedUrl`和`method`的重复性检查。
 - 确保`capturedRequestsMap`中的数据唯一性。
+
+---
+
+## 新增剪切板查看器工具
+
+**提交时间**: 2025-01-14 [当前时间]
+**提交类型**: feat(tools)
+**提交描述**: add clipboard viewer tool
+
+### 变更的文件
+1. sidebar/routes.tsx - 修改（添加ClipboardViewer路由配置和图标导入）
+2. sidebar/tools/ClipboardViewer/index.tsx - 新增（剪切板查看器主组件）
+3. sidebar/tools/ClipboardViewer/useClipboardViewer.ts - 新增（剪切板查看器自定义Hook）
+
+### 本次提交的详细内容总结
+本次提交新增了剪切板查看器工具，为用户提供了查看剪切板内容的功能。该工具支持多种MIME类型的数据展示，用户可以通过粘贴操作查看剪切板中的各种格式数据。
+
+主要功能包括：
+- 支持通过Ctrl/Cmd+V粘贴操作触发剪切板内容读取
+- 按MIME类型分类显示剪切板数据
+- 友好的错误处理和用户提示
+- 响应式设计适配不同屏幕尺寸
+
+技术实现采用视图与逻辑分离的模式，组件仅负责UI渲染，所有业务逻辑封装在useClipboardViewer Hook中。
+
+### 相关问题或需求
+- 实现剪切板内容查看功能
+- 支持多种数据格式展示
+- 提供开发调试和内容分析工具
+
+**技术亮点**:
+- 遵循Hook First原则，视图与逻辑严格分离
+- 使用shadcn/ui组件库保持界面一致性
+- 支持多种MIME类型的数据解析和展示
+- 良好的错误处理和用户体验设计
