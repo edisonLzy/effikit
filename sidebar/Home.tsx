@@ -137,6 +137,7 @@ interface ToolCardProps {
     background: string;
     boxShadow: string;
     borderColor: string;
+    textColor: string;
   };
   isSelected: boolean;
   shouldBlur: boolean;
@@ -165,6 +166,7 @@ function ToolCard(props: ToolCardProps) {
           : '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
         gridColumn: `span ${cols}`,
         gridRow: `span ${rows}`,
+        color: colorStyle.textColor,
       }}
       onClick={onClick}
     >
@@ -213,7 +215,6 @@ function SearchBox(props: SearchBoxProps) {
           rounded-2xl shadow-2xl m-[2px]
           transition-all duration-300
           bg-background
-          opacity-90
         "
       >
         <div className="relative">
@@ -226,8 +227,7 @@ function SearchBox(props: SearchBoxProps) {
             onKeyDown={onKeyDown}
             className="
               pl-10 pr-4 py-2 w-full
-              bg-transparent border-none
-              focus:ring-0 focus:outline-none focus-visible:outline-none
+              border-none
               selection:bg-blue-500/30
             "
             style={{
