@@ -7,6 +7,7 @@ import {
   Key,
   Link,
   Palette,
+  Clipboard,
 } from 'lucide-react';
 import { Layout } from './layout';
 import { Home } from './Home';
@@ -16,6 +17,7 @@ import { JSONViewer } from './tools/JSONViewer';
 import { Base64Encoder } from './tools/Base64Encoder';
 import { ColorPicker } from './tools/ColorPicker';
 import { RequestInterceptor } from './tools/RequestInterceptor';
+import { ClipboardViewer } from './tools/ClipboardViewer';
 import { NotFoundPage } from './404';
 import { ErrorBoundary } from './ErrorBoundary';
 import { ErrorTestComponent } from './components/ErrorTestComponent';
@@ -90,6 +92,15 @@ export const toolRoutes: RouteObject[] = [
       label: 'Base64编码',
       description: '支持文本和图片的Base64编码解码转换',
       icon: <Key className="w-4 h-4" />,
+    } satisfies RouteHandle
+  },
+  {
+    path:'ClipboardViewer',
+    element: <ClipboardViewer />,
+    handle: {
+      label: '剪切板查看器',
+      description: '查看剪切板内容, 支持多种MIME类型',
+      icon: <Clipboard className="w-4 h-4" />,
     } satisfies RouteHandle
   }
 ];
