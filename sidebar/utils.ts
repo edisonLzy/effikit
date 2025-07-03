@@ -35,6 +35,6 @@ export function generateColorVariants(baseColor: string) {
     background: `linear-gradient(to bottom right, ${veryLightBg}, ${lightBg})`,
     boxShadow: `0 4px 6px -1px ${shadowColor}, 0 2px 4px -1px ${shadowColor}`,
     borderColor: baseColor,
-    textColor: textColor,
+    textColor,
   };
 }
