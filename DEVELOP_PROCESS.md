@@ -716,3 +716,20 @@ pnpm task-master expand --id=2 --prompt='the response json must wrap in markdown
 
 ---
 
+
+## feat(global-config): add clearFeatureConfig to useGlobalConfig
+
+### 变更的文件
+1. hooks/useGlobalConfig.ts - 修改
+2. sidebar/tools/RequestInterceptor/ConfigModal.tsx - 修改
+
+### 本次提交的详细内容总结
+- 在 `useGlobalConfig` hook 中新增了 `clearFeatureConfig` 方法，用于简化清空特定功能配置的逻辑。
+- `clearFeatureConfig` 方法会从 `chrome.storage.sync` 中移除指定功能的配置。
+- 更新了 `BellaConfigForm` 中的“清空”按钮，使其调用新的 `clearFeatureConfig` 方法来清除 Bella Workflow 的配置。
+
+### 相关问题或需求
+- 简化配置管理，提供更便捷的配置清空功能。
+
+---
+

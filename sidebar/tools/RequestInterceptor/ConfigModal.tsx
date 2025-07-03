@@ -1,16 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { Loader2 } from 'lucide-react';
+import type { FeatureConfig } from '@/hooks/useGlobalConfig';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { useGlobalConfig } from '@/hooks/useGlobalConfig';
+
+const BELLA_WORKFLOW_FEATURE_KEY = 'bellaWorkflow';
+
+interface BellaConfigFormData {
+  bellaUrl: string;
+  apiKey: string;
+  tenantId: string;
+  workflowId: string;
+  userId: string;
+}
 
 function BellaConfigForm() {
-  const { register, handleSubmit, reset } = useForm();
+  const { getFeatureConfig, setFeatureConfig, clearFeatureConfig, isLoading: isConfigLoading } = useGlobalConfig();
+  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<BellaConfigFormData>();
 
-  const onSubmit = (data: any) => {
-    console.log('Saving Bella Workflow configuration:', data);
+  useEffect(() => {
+    const existingConfig = getFeatureConfig(BELLA_WORKFLOW_FEATURE_KEY);
+    reset(existingConfig as unknown as BellaConfigFormData);
+  }, [isConfigLoading, getFeatureConfig, reset]);
+
+  const onSubmit = async (data: BellaConfigFormData) => {
+    await setFeatureConfig(BELLA_WORKFLOW_FEATURE_KEY, data as unknown as FeatureConfig);
   };
+
+  const onClear = async () => {
+    clearFeatureConfig(BELLA_WORKFLOW_FEATURE_KEY);
+  };
+
+  if (isConfigLoading) {
+    return (
+      <div className="flex items-center justify-center p-8 border rounded-md">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4 border rounded-md">
@@ -46,10 +77,12 @@ function BellaConfigForm() {
         <Input id="userId" {...register('userId')} className="col-span-3" />
       </div>
       <div className="flex justify-end gap-2 mt-4">
-        <Button type="button" variant="outline" onClick={() => reset()}>
+        <Button type="button" variant="outline" onClick={onClear} disabled={isSubmitting}>
           清空
         </Button>
-        <Button type="submit">保存</Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : '保存'}
+        </Button>
       </div>
     </form>
   );
