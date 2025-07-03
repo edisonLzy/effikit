@@ -1,7 +1,8 @@
 import React from 'react';
-import { Edit, Search, Globe, Activity, AlertCircle, CheckCircle, Trash2 } from 'lucide-react';
+import { Edit, Search, Globe, Activity, AlertCircle, CheckCircle, Trash2, Settings } from 'lucide-react';
 import { useRequestInterceptor } from './useRequestInterceptor';
 import { MockDataDialog } from './MockDataDialog';
+import { ConfigModal, useConfigModal } from './ConfigModal';
 import type { CapturedHttpRequest } from './types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ export function RequestInterceptor() {
     closeMockDialog,
     clearAllRequests
   } = useRequestInterceptor();
+  const { isOpen: isConfigModalOpen, openModal: openConfigModal, closeModal: closeConfigModal } = useConfigModal();
 
   const getMethodColor = (method: string) => {
     const colors = {
@@ -57,15 +59,26 @@ export function RequestInterceptor() {
             <Badge variant="secondary" className="text-xs">
               {filteredRequests.length} 个请求
             </Badge>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearAllRequests}
-              className="h-7 px-2 text-xs"
-            >
-              <Trash2 className="w-3 h-3 mr-1" />
-              清空
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={openConfigModal}
+                className="h-7 px-2 text-xs"
+              >
+                <Settings className="w-3 h-3 mr-1" />
+                配置
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllRequests}
+                className="h-7 px-2 text-xs"
+              >
+                <Trash2 className="w-3 h-3 mr-1" />
+                清空
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -160,6 +173,11 @@ export function RequestInterceptor() {
         onClose={closeMockDialog}
         request={selectedRequest}
         onSave={upsertMockData}
+      />
+
+      <ConfigModal
+        isOpen={isConfigModalOpen}
+        onClose={closeConfigModal}
       />
     </div>
   );
