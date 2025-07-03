@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, Save, Code, AlertTriangle, Wand2, Copy, Check, Sparkles, Plus, Trash2, Loader2 } from 'lucide-react';
+import { Save, Code, AlertTriangle, Wand2, Copy, Check, Sparkles, Plus, Trash2, Loader2 } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
 import { oneDark } from '@codemirror/theme-one-dark';
@@ -82,7 +82,6 @@ function AIGenerateDialog(props: AIGenerateDialogProps) {
 
   // 监听表单字段变化
   const apiEndpoint = watch('apiEndpoint');
-  const selectedMethod = watch('method');
   
   useEffect(() => {
     if (apiError && apiEndpoint) {
@@ -116,8 +115,6 @@ function AIGenerateDialog(props: AIGenerateDialogProps) {
         url: requestInfo?.url,
       };
 
-
-
       // 添加自定义参数
       data.customParams.forEach(param => {
         if (param.key && param.value) {
@@ -130,6 +127,7 @@ function AIGenerateDialog(props: AIGenerateDialogProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer d9a710ab-2df9-47ec-9ab8-52301791db75'
         },
         body: JSON.stringify(requestData),
       });
@@ -208,64 +206,64 @@ function AIGenerateDialog(props: AIGenerateDialogProps) {
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 space-y-6 overflow-auto min-h-0">
-             {/* API接口地址 */}
-             <div className="space-y-2">
-               <Label htmlFor="aiApiEndpoint" className="text-sm font-medium">
-                 AI API 接口地址 <span className="text-destructive">*</span>
-               </Label>
-               <Controller
-                 name="apiEndpoint"
-                 control={control}
-                 rules={{ validate: validateUrl }}
-                 render={({ field }) => (
-                   <Input
-                     {...field}
-                     id="aiApiEndpoint"
-                     placeholder="https://api.example.com/generate-mock"
-                     className={errors.apiEndpoint ? 'border-destructive' : ''}
-                     disabled={isGenerating}
-                   />
-                 )}
-               />
-               {errors.apiEndpoint && (
-                 <p className="text-xs text-destructive">{errors.apiEndpoint.message}</p>
-               )}
-             </div>
+            {/* API接口地址 */}
+            <div className="space-y-2">
+              <Label htmlFor="aiApiEndpoint" className="text-sm font-medium">
+                AI API 接口地址 <span className="text-destructive">*</span>
+              </Label>
+              <Controller
+                name="apiEndpoint"
+                control={control}
+                rules={{ validate: validateUrl }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    id="aiApiEndpoint"
+                    placeholder="https://api.example.com/generate-mock"
+                    className={errors.apiEndpoint ? 'border-destructive' : ''}
+                    disabled={isGenerating}
+                  />
+                )}
+              />
+              {errors.apiEndpoint && (
+                <p className="text-xs text-destructive">{errors.apiEndpoint.message}</p>
+              )}
+            </div>
 
-             {/* HTTP Method 选择 */}
-             <div className="space-y-2">
-               <Label className="text-sm font-medium">
-                 HTTP Method <span className="text-destructive">*</span>
-               </Label>
-               <Controller
-                 name="method"
-                 control={control}
-                 rules={{ required: 'HTTP Method 为必填项' }}
-                 render={({ field }) => (
-                   <Select 
-                     value={field.value} 
-                     onValueChange={field.onChange}
-                     disabled={isGenerating}
-                   >
-                     <SelectTrigger className={errors.method ? 'border-destructive' : ''}>
-                       <SelectValue placeholder="选择 HTTP Method" />
-                     </SelectTrigger>
-                     <SelectContent>
-                       <SelectItem value="GET">GET</SelectItem>
-                       <SelectItem value="POST">POST</SelectItem>
-                       <SelectItem value="PUT">PUT</SelectItem>
-                       <SelectItem value="PATCH">PATCH</SelectItem>
-                       <SelectItem value="DELETE">DELETE</SelectItem>
-                       <SelectItem value="HEAD">HEAD</SelectItem>
-                       <SelectItem value="OPTIONS">OPTIONS</SelectItem>
-                     </SelectContent>
-                   </Select>
-                 )}
-               />
-               {errors.method && (
-                 <p className="text-xs text-destructive">{errors.method.message}</p>
-               )}
-             </div>
+            {/* HTTP Method 选择 */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                HTTP Method <span className="text-destructive">*</span>
+              </Label>
+              <Controller
+                name="method"
+                control={control}
+                rules={{ required: 'HTTP Method 为必填项' }}
+                render={({ field }) => (
+                  <Select 
+                    value={field.value} 
+                    onValueChange={field.onChange}
+                    disabled={isGenerating}
+                  >
+                    <SelectTrigger className={errors.method ? 'border-destructive' : ''}>
+                      <SelectValue placeholder="选择 HTTP Method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="GET">GET</SelectItem>
+                      <SelectItem value="POST">POST</SelectItem>
+                      <SelectItem value="PUT">PUT</SelectItem>
+                      <SelectItem value="PATCH">PATCH</SelectItem>
+                      <SelectItem value="DELETE">DELETE</SelectItem>
+                      <SelectItem value="HEAD">HEAD</SelectItem>
+                      <SelectItem value="OPTIONS">OPTIONS</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.method && (
+                <p className="text-xs text-destructive">{errors.method.message}</p>
+              )}
+            </div>
 
             {/* 自定义参数 */}
             <div className="space-y-3">
@@ -366,32 +364,32 @@ function AIGenerateDialog(props: AIGenerateDialogProps) {
             )}
           </div>
 
-                     <DialogFooter className="flex flex-row gap-2 justify-end">
-             <Button
-               type="button"
-               variant="outline"
-               onClick={handleClose}
-               disabled={isGenerating}
-             >
-               取消
-             </Button>
-             <Button
-               type="submit"
-               disabled={isGenerating || !isValid}
-             >
-               {isGenerating ? (
-                 <>
-                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                   生成中...
-                 </>
-               ) : (
-                 <>
-                   <Sparkles className="w-4 h-4 mr-2" />
-                   生成Mock数据
-                 </>
-               )}
-             </Button>
-           </DialogFooter>
+          <DialogFooter className="flex flex-row gap-2 justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isGenerating}
+            >
+              取消
+            </Button>
+            <Button
+              type="submit"
+              disabled={isGenerating || !isValid}
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  生成中...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  生成Mock数据
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -511,103 +509,103 @@ export function MockDataDialog(props: MockDataDialogProps) {
           {/* 表单内容 - 可滚动区域 */}
           <div className="flex-1 space-y-4 overflow-auto min-h-0">
 
-          {/* Mock数据 */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="mockData" className="text-sm font-medium">响应数据</Label>
-              <div className="flex items-center gap-2">
-                {/* 模板选择 */}
-                <div className="flex gap-1">
-                  {Object.entries(templates).map(([key, template]) => (
-                    <Button
-                      key={key}
-                      size="sm"
-                      variant="outline"
-                      onClick={() => insertTemplate(template)}
-                      className="h-7 px-2 text-xs"
-                    >
-                      {key}
-                    </Button>
-                  ))}
+            {/* Mock数据 */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="mockData" className="text-sm font-medium">响应数据</Label>
+                <div className="flex items-center gap-2">
+                  {/* 模板选择 */}
+                  <div className="flex gap-1">
+                    {Object.entries(templates).map(([key, template]) => (
+                      <Button
+                        key={key}
+                        size="sm"
+                        variant="outline"
+                        onClick={() => insertTemplate(template)}
+                        className="h-7 px-2 text-xs"
+                      >
+                        {key}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* 工具栏 */}
-            <div className="flex items-center justify-between bg-muted/50 p-2 rounded-t-md border">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">JSON编辑器</span>
-                {!isValidJson && (
-                  <div className="flex items-center gap-1 text-xs text-destructive">
-                    <AlertTriangle className="w-3 h-3" />
-                    语法错误
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center gap-1">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={openAIDialog}
-                  className="h-7 px-2"
-                  title="AI生成Mock数据"
-                >
-                  <Sparkles className="w-3 h-3" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={formatJson}
-                  disabled={!isValidJson || !mockData.trim()}
-                  className="h-7 px-2"
-                  title="格式化JSON"
-                >
-                  <Wand2 className="w-3 h-3" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={copyToClipboard}
-                  disabled={!mockData.trim()}
-                  className="h-7 px-2"
-                  title="复制到剪贴板"
-                >
-                  {isCopied ? (
-                    <Check className="w-3 h-3 text-green-500" />
-                  ) : (
-                    <Copy className="w-3 h-3" />
+              {/* 工具栏 */}
+              <div className="flex items-center justify-between bg-muted/50 p-2 rounded-t-md border">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">JSON编辑器</span>
+                  {!isValidJson && (
+                    <div className="flex items-center gap-1 text-xs text-destructive">
+                      <AlertTriangle className="w-3 h-3" />
+                      语法错误
+                    </div>
                   )}
-                </Button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={openAIDialog}
+                    className="h-7 px-2"
+                    title="AI生成Mock数据"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={formatJson}
+                    disabled={!isValidJson || !mockData.trim()}
+                    className="h-7 px-2"
+                    title="格式化JSON"
+                  >
+                    <Wand2 className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={copyToClipboard}
+                    disabled={!mockData.trim()}
+                    className="h-7 px-2"
+                    title="复制到剪贴板"
+                  >
+                    {isCopied ? (
+                      <Check className="w-3 h-3 text-green-500" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            {/* CodeMirror编辑器 */}
-            <div className="border rounded-b-md overflow-hidden">
-              <CodeMirror
-                value={mockData}
-                onChange={handleMockDataChange}
-                extensions={[json()]}
-                theme={oneDark}
-                height="300px"
-                placeholder='输入Mock响应数据，例如：{"success": true, "data": "Hello World"}'
-                basicSetup={{
-                  lineNumbers: true,
-                  foldGutter: true,
-                  dropCursor: false,
-                  allowMultipleSelections: false,
-                  indentOnInput: true,
-                  bracketMatching: true,
-                  closeBrackets: true,
-                  autocompletion: true,
-                  highlightSelectionMatches: false,
-                }}
-              />
-            </div>
+              {/* CodeMirror编辑器 */}
+              <div className="border rounded-b-md overflow-hidden">
+                <CodeMirror
+                  value={mockData}
+                  onChange={handleMockDataChange}
+                  extensions={[json()]}
+                  theme={oneDark}
+                  height="300px"
+                  placeholder='输入Mock响应数据，例如：{"success": true, "data": "Hello World"}'
+                  basicSetup={{
+                    lineNumbers: true,
+                    foldGutter: true,
+                    dropCursor: false,
+                    allowMultipleSelections: false,
+                    indentOnInput: true,
+                    bracketMatching: true,
+                    closeBrackets: true,
+                    autocompletion: true,
+                    highlightSelectionMatches: false,
+                  }}
+                />
+              </div>
             
-            <p className="text-xs text-muted-foreground">
-              提示：支持JSON语法高亮和自动格式化。可以使用上方模板快速插入常用格式。
-            </p>
-          </div>
+              <p className="text-xs text-muted-foreground">
+                提示：支持JSON语法高亮和自动格式化。可以使用上方模板快速插入常用格式。
+              </p>
+            </div>
           </div>
 
           <DialogFooter className="flex flex-row gap-2 justify-end">
