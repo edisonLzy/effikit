@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { Loader2 } from 'lucide-react';
 import type { FeatureConfig } from '@/hooks/useGlobalConfig';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -18,21 +18,51 @@ interface BellaConfigFormData {
   userId: string;
 }
 
-function BellaConfigForm() {
+export function useBellaConfig() {
   const { getFeatureConfig, setFeatureConfig, clearFeatureConfig, isLoading: isConfigLoading } = useGlobalConfig();
-  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<BellaConfigFormData>();
+  const [config, setConfig] = useState<BellaConfigFormData | null>(null);
 
   useEffect(() => {
-    const existingConfig = getFeatureConfig(BELLA_WORKFLOW_FEATURE_KEY);
-    reset(existingConfig as unknown as BellaConfigFormData);
-  }, [isConfigLoading, getFeatureConfig, reset]);
+    if (!isConfigLoading) {
+      const existingConfig = getFeatureConfig(BELLA_WORKFLOW_FEATURE_KEY);
+      setConfig(existingConfig as unknown as BellaConfigFormData);
+    }
+  }, [isConfigLoading, getFeatureConfig]);
 
-  const onSubmit = async (data: BellaConfigFormData) => {
+  const saveConfig = async (data: BellaConfigFormData) => {
     await setFeatureConfig(BELLA_WORKFLOW_FEATURE_KEY, data as unknown as FeatureConfig);
   };
 
+  const clearConfig = async () => {
+    await clearFeatureConfig(BELLA_WORKFLOW_FEATURE_KEY);
+    setConfig(null); // Clear local state after clearing global config
+  };
+
+  return {
+    config,
+    saveConfig,
+    clearConfig,
+    isConfigLoading,
+  };
+}
+
+function BellaConfigForm() {
+  const { config, saveConfig, clearConfig, isConfigLoading } = useBellaConfig();
+  const { handleSubmit, reset, formState: { isSubmitting }, control } = useForm<BellaConfigFormData>();
+
+  useEffect(() => {
+    if (config) {
+      reset(config);
+    }
+  }, [config, reset]);
+
+  const onSubmit = async (data: BellaConfigFormData) => {
+    await saveConfig(data);
+  };
+
   const onClear = async () => {
-    clearFeatureConfig(BELLA_WORKFLOW_FEATURE_KEY);
+    await clearConfig();
+    reset({}); // Reset form fields after clearing
   };
 
   if (isConfigLoading) {
@@ -50,31 +80,61 @@ function BellaConfigForm() {
         <Label htmlFor="bellaUrl" className="text-right">
           Bella URL
         </Label>
-        <Input id="bellaUrl" {...register('bellaUrl')} className="col-span-3" />
+        <Controller
+          name="bellaUrl"
+          control={control}
+          render={({ field }) => (
+            <Input id="bellaUrl" placeholder="请输入Bella服务URL" className="col-span-3" {...field} />
+          )}
+        />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="apiKey" className="text-right">
           API Key
         </Label>
-        <Input id="apiKey" {...register('apiKey')} className="col-span-3" />
+        <Controller
+          name="apiKey"
+          control={control}
+          render={({ field }) => (
+            <Input id="apiKey" placeholder="请输入API Key" className="col-span-3" {...field} />
+          )}
+        />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="tenantId" className="text-right">
           Tenant ID
         </Label>
-        <Input id="tenantId" {...register('tenantId')} className="col-span-3" />
+        <Controller
+          name="tenantId"
+          control={control}
+          render={({ field }) => (
+            <Input id="tenantId" placeholder="请输入Tenant ID" className="col-span-3" {...field} />
+          )}
+        />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="workflowId" className="text-right">
           Workflow ID
         </Label>
-        <Input id="workflowId" {...register('workflowId')} className="col-span-3" />
+        <Controller
+          name="workflowId"
+          control={control}
+          render={({ field }) => (
+            <Input id="workflowId" placeholder="请输入Workflow ID" className="col-span-3" {...field} />
+          )}
+        />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="userId" className="text-right">
           User ID
         </Label>
-        <Input id="userId" {...register('userId')} className="col-span-3" />
+        <Controller
+          name="userId"
+          control={control}
+          render={({ field }) => (
+            <Input id="userId" placeholder="请输入User ID" className="col-span-3" {...field} />
+          )}
+        />
       </div>
       <div className="flex justify-end gap-2 mt-4">
         <Button type="button" variant="outline" onClick={onClear} disabled={isSubmitting}>
