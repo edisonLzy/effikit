@@ -231,7 +231,7 @@ function getNodePath(node: Node): string {
         const textNodes = Array.from(parent.childNodes).filter(
           n => n.nodeType === Node.TEXT_NODE
         );
-        const index = textNodes.indexOf(current);
+        const index = textNodes.indexOf(current as Text);
         path.unshift(`text[${index}]`);
       }
     }

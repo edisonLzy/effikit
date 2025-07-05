@@ -41,8 +41,8 @@ async function toggleHighlightForTab(tabId: number) {
       payload: { enabled: newEnabled }
     });
     
-    // 更新图标
-    await updateActionIcon(tabId, newEnabled);
+    // 更新图标（需要检查是否有高亮内容）
+    await updateActionIcon(tabId, newEnabled, false);
     
     console.log(`Highlight toggled for tab ${tabId}: ${newEnabled}`);
   } catch (error) {
@@ -51,20 +51,50 @@ async function toggleHighlightForTab(tabId: number) {
 }
 
 // 更新扩展图标
-async function updateActionIcon(tabId: number, enabled: boolean) {
+async function updateActionIcon(tabId: number, enabled: boolean, hasHighlights: boolean = false) {
   try {
-    const iconPath = enabled ? 'images/icon-16.png' : 'images/icon-16-disabled.png';
-    const title = enabled ? 'EffiKit - 高亮已启用' : 'EffiKit - 高亮已禁用';
+    // 根据状态设置不同的图标和标题
+    let title = 'EffiKit - 开发工具集成平台';
+    let badgeText = '';
+    let badgeColor = '#4CAF50';
     
-    await chrome.action.setIcon({ 
-      tabId, 
-      path: { '16': iconPath } 
-    });
+    if (hasHighlights) {
+      if (enabled) {
+        title += ' (高亮已启用，当前页面有高亮内容)';
+        badgeText = '●';
+        badgeColor = '#FF9800';
+      } else {
+        title += ' (高亮已禁用，当前页面有高亮内容)';
+        badgeText = '●';
+        badgeColor = '#757575';
+      }
+    } else {
+      if (enabled) {
+        title += ' (高亮已启用)';
+        badgeText = '';
+      } else {
+        title += ' (高亮已禁用)';
+        badgeText = '';
+      }
+    }
     
+    // 设置标题
     await chrome.action.setTitle({ 
       tabId, 
       title 
     });
+    
+    // 设置徽章
+    await chrome.action.setBadgeText({
+      tabId,
+      text: badgeText
+    });
+    
+    await chrome.action.setBadgeBackgroundColor({
+      tabId,
+      color: badgeColor
+    });
+    
   } catch (error) {
     console.error('Failed to update action icon:', error);
   }
@@ -77,12 +107,16 @@ async function checkTabHighlights(tabId: number) {
       type: 'GET_HIGHLIGHT_STATUS'
     });
     
-    if (response && response.hasHighlights) {
-      // 如果有高亮内容，更新图标显示
-      await updateActionIcon(tabId, response.enabled);
+    if (response) {
+      // 更新图标显示
+      const enabled = tabHighlightStatus.get(tabId) ?? highlightEnabled;
+      await updateActionIcon(tabId, enabled, response.hasHighlights);
     }
   } catch (error) {
     // 忽略错误，可能是页面还没有加载 content script
+    // 设置默认状态
+    const enabled = tabHighlightStatus.get(tabId) ?? highlightEnabled;
+    await updateActionIcon(tabId, enabled, false);
   }
 }
 
@@ -92,7 +126,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'HIGHLIGHT_CREATED') {
     if (sender.tab?.id) {
       // 更新图标，显示该页面有高亮内容
-      updateActionIcon(sender.tab.id, true);
+      const enabled = tabHighlightStatus.get(sender.tab.id) ?? highlightEnabled;
+      updateActionIcon(sender.tab.id, enabled, true);
+    }
+    return;
+  }
+  
+  if (request.type === 'HIGHLIGHT_REMOVED') {
+    if (sender.tab?.id) {
+      // 检查是否还有其他高亮内容
+      checkTabHighlights(sender.tab.id);
     }
     return;
   }

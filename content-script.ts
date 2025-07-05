@@ -191,11 +191,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       break;
       
     case 'GET_HIGHLIGHT_STATUS':
-      sendResponse({ 
-        enabled: isHighlightEnabled,
-        hasHighlights: highlightManager.hasHighlights()
-      });
-      break;
+      // 异步处理高亮状态检查
+      (async () => {
+        try {
+          const hasHighlights = await highlightManager.hasHighlights();
+          sendResponse({ 
+            enabled: isHighlightEnabled,
+            hasHighlights
+          });
+        } catch (error) {
+          console.error('Failed to get highlight status:', error);
+          sendResponse({ 
+            enabled: isHighlightEnabled,
+            hasHighlights: false
+          });
+        }
+      })();
+      return true; // 保持消息通道开放
       
     default:
       break;

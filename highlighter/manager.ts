@@ -87,6 +87,14 @@ export class HighlightManager {
       // 从存储中移除
       await removeHighlight(highlightId, window.location.href);
       
+      // 通知背景脚本更新图标
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        chrome.runtime.sendMessage({
+          type: 'HIGHLIGHT_REMOVED',
+          payload: { url: window.location.href }
+        });
+      }
+      
       return domRemoved;
     } catch (error) {
       console.error('Failed to remove highlight:', error);
