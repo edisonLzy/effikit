@@ -1,0 +1,122 @@
+
+# Obsidian Clipper Highlight Functionality Analysis
+
+This document breaks down the implementation of the highlight feature in the Obsidian Clipper browser extension.
+
+## Relevant Files
+
+*   `src/content.ts`: The main content script that interacts with the web page's DOM.
+*   `src/managers/highlights-manager.ts`: Manages the lifecycle of highlights.
+*   `src/highlighter.scss`: Defines the visual appearance of the highlights.
+
+## Implementation Details
+
+The highlighting functionality is initiated from the `content.ts` script. Here's a step-by-step breakdown of the process:
+
+1.  **UI Injection**:
+    *   `content.ts` injects the highlighter's UI components into the current web page. This includes the buttons for different highlight colors and the container for the highlighted text.
+
+2.  **Text Selection**:
+    *   The user selects text on the page.
+    *   `content.ts` detects the `mouseup` event.
+    *   If text is selected, the script captures the selection.
+
+3.  **Highlight Creation**:
+    *   The selected text is sent to the `highlights-manager.ts` script.
+    *   The `highlights-manager` creates a highlight object, which includes the selected text, the current URL, and a unique ID.
+    *   The `highlights-manager` then wraps the selected text in a `<span>` element with a specific class for styling. The class corresponds to the selected highlight color.
+
+4.  **Styling**:
+    *   The `highlighter.scss` file provides the styling for the `<span>` elements. It defines the background colors for the different highlight options and the appearance of the highlight on hover.
+
+5.  **Storage**:
+    *   The highlight objects are stored, likely using the browser's local storage, so they can be retrieved later.
+
+## Key Code Snippets
+
+### `src/content.ts`
+
+```typescript
+// Listens for messages from the background script to toggle the highlighter
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === 'toggle-highlighter') {
+    toggleHighlighter();
+  }
+});
+
+// ...
+
+// Event listener for text selection
+document.addEventListener('mouseup', (event) => {
+  const selection = window.getSelection();
+  if (selection && selection.toString().length > 0) {
+    // Send the selection to the highlights-manager
+    chrome.runtime.sendMessage({
+      type: 'new-highlight',
+      payload: {
+        text: selection.toString(),
+        url: window.location.href,
+      },
+    });
+  }
+});
+```
+
+### `src/managers/highlights-manager.ts`
+
+```typescript
+// ...
+
+class HighlightsManager {
+  // ...
+
+  createHighlight(text, url) {
+    const highlightId = // Generate a unique ID;
+    const highlight = {
+      id: highlightId,
+      text,
+      url,
+    };
+
+    // Store the highlight
+    this.highlights.push(highlight);
+    this.saveHighlights();
+
+    // Wrap the selected text in a span
+    this.wrapSelection(highlightId);
+  }
+
+  wrapSelection(highlightId) {
+    const selection = window.getSelection();
+    if (selection) {
+      const range = selection.getRangeAt(0);
+      const span = document.createElement('span');
+      span.className = `highlight-span ${this.selectedColor}`; // Use the selected color
+      span.dataset.highlightId = highlightId;
+      range.surroundContents(span);
+    }
+  }
+
+  // ...
+}
+```
+
+### `src/highlighter.scss`
+
+```scss
+.highlight-span {
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+
+  &.yellow {
+    background-color: rgba(255, 255, 0, 0.4);
+  }
+
+  &.red {
+    background-color: rgba(255, 0, 0, 0.4);
+  }
+
+  // ... other colors
+}
+```

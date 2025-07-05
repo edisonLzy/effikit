@@ -8,6 +8,7 @@ import {
   Link,
   Palette,
   Clipboard,
+  Highlighter,
 } from 'lucide-react';
 import { Layout } from './layout';
 import { Home } from './Home';
@@ -18,6 +19,7 @@ import { Base64Encoder } from './tools/Base64Encoder';
 import { ColorPicker } from './tools/ColorPicker';
 import { RequestInterceptor } from './tools/RequestInterceptor';
 import { ClipboardViewer } from './tools/ClipboardViewer';
+import { HighlightsManager } from './tools/HighlightsManager';
 import { NotFoundPage } from './404';
 import { ErrorBoundary } from './ErrorBoundary';
 import { ErrorTestComponent } from './components/ErrorTestComponent';
@@ -101,6 +103,15 @@ export const toolRoutes: RouteObject[] = [
       label: '剪切板查看器',
       description: '查看剪切板内容, 支持多种MIME类型',
       icon: <Clipboard className="w-4 h-4" />,
+    } satisfies RouteHandle
+  },
+  {
+    path:'HighlightsManager',
+    element: <HighlightsManager />,
+    handle: {
+      label: '高亮管理',
+      description: '管理网页高亮内容，支持多种颜色和批量操作',
+      icon: <Highlighter className="w-4 h-4" />,
     } satisfies RouteHandle
   }
 ];
