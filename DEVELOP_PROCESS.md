@@ -695,6 +695,45 @@ pnpm task-master expand --id=2 --prompt='the response json must wrap in markdown
 - 在`onBeforeRequest`中引入了基于`normalizedUrl`和`method`的重复性检查。
 - 确保`capturedRequestsMap`中的数据唯一性。
 
+## feat(request-interceptor): add configuration modal and bella config form
+
+### 变更的文件
+1. sidebar/tools/RequestInterceptor/index.tsx - 修改
+2. sidebar/tools/RequestInterceptor/ConfigModal.tsx - 新增
+3. sidebar/tools/RequestInterceptor/useRequestInterceptor.ts - 修改
+4. package.json - 修改
+5. pnpm-lock.yaml - 修改
+
+### 本次提交的详细内容总结
+- 在请求拦截器工具中添加了配置功能，包括一个配置按钮和模态框。
+- 创建了 `useConfigModal` hook 来管理配置模态框的状态，实现了关注点分离。
+- 新增了 `BellaConfigForm` 组件，使用 `react-hook-form` 来处理表单逻辑，并包含了保存和清空功能。
+- 重构了 `ConfigModal`，使其成为一个可容纳多个配置表单的通用容器。
+
+### 相关问题或需求
+- 解决在请求拦截器中缺乏配置界面的问题。
+- 实现对 Bella Workflow 的可配置化支持。
+
+---
+
+
+## feat(global-config): add clearFeatureConfig to useGlobalConfig
+
+### 变更的文件
+1. hooks/useGlobalConfig.ts - 修改
+2. sidebar/tools/RequestInterceptor/ConfigModal.tsx - 修改
+
+### 本次提交的详细内容总结
+- 在 `useGlobalConfig` hook 中新增了 `clearFeatureConfig` 方法，用于简化清空特定功能配置的逻辑。
+- `clearFeatureConfig` 方法会从 `chrome.storage.sync` 中移除指定功能的配置。
+- 更新了 `BellaConfigForm` 中的“清空”按钮，使其调用新的 `clearFeatureConfig` 方法来清除 Bella Workflow 的配置。
+
+### 相关问题或需求
+- 简化配置管理，提供更便捷的配置清空功能。
+
+---
+
+=======
 ---
 
 ## 新增剪切板查看器工具
