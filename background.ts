@@ -7,12 +7,7 @@ const tabHighlightStatus = new Map<number, boolean>();
 
 // 处理扩展图标点击事件
 chrome.action.onClicked.addListener(async (tab) => {
-  if (tab.id) {
-    // 切换高亮功能
-    await toggleHighlightForTab(tab.id);
-  }
-  
-  // 打开侧边栏
+  // 只打开侧边栏，不切换高亮功能
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 });
 
@@ -23,7 +18,78 @@ chrome.runtime.onInstalled.addListener((details) => {
   } else if (details.reason === 'update') {
     console.log('EffiKit 扩展已更新');
   }
+  
+  // 创建右键菜单
+  createContextMenus();
 });
+
+// 创建右键菜单
+function createContextMenus() {
+  // 清除现有菜单
+  chrome.contextMenus.removeAll(() => {
+    // 创建主菜单
+    chrome.contextMenus.create({
+      id: 'effikit-highlight-toggle',
+      title: '切换高亮功能',
+      contexts: ['action']
+    });
+    
+    chrome.contextMenus.create({
+      id: 'effikit-highlight-clear',
+      title: '清除当前页面高亮',
+      contexts: ['action']
+    });
+    
+    chrome.contextMenus.create({
+      id: 'effikit-separator',
+      type: 'separator',
+      contexts: ['action']
+    });
+    
+    chrome.contextMenus.create({
+      id: 'effikit-open-manager',
+      title: '打开高亮管理',
+      contexts: ['action']
+    });
+  });
+}
+
+// 处理右键菜单点击
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (!tab?.id) return;
+  
+  switch (info.menuItemId) {
+    case 'effikit-highlight-toggle':
+      await toggleHighlightForTab(tab.id);
+      // 更新菜单标题
+      await updateContextMenus(tab.id);
+      break;
+      
+    case 'effikit-highlight-clear':
+      await clearHighlightsForTab(tab.id);
+      break;
+      
+    case 'effikit-open-manager':
+      // 打开侧边栏并导航到高亮管理
+      chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+      // 可以发送消息给侧边栏来导航到高亮管理工具
+      break;
+  }
+});
+
+// 更新右键菜单状态
+async function updateContextMenus(tabId: number) {
+  try {
+    const enabled = tabHighlightStatus.get(tabId) ?? highlightEnabled;
+    const title = enabled ? '禁用高亮功能' : '启用高亮功能';
+    
+    chrome.contextMenus.update('effikit-highlight-toggle', {
+      title: title
+    });
+  } catch (error) {
+    console.error('Failed to update context menus:', error);
+  }
+}
 
 // 切换标签页的高亮功能
 async function toggleHighlightForTab(tabId: number) {
@@ -47,6 +113,24 @@ async function toggleHighlightForTab(tabId: number) {
     console.log(`Highlight toggled for tab ${tabId}: ${newEnabled}`);
   } catch (error) {
     console.error('Failed to toggle highlight for tab:', error);
+  }
+}
+
+// 清除标签页的高亮内容
+async function clearHighlightsForTab(tabId: number) {
+  try {
+    // 发送消息给 content script 清除高亮
+    chrome.tabs.sendMessage(tabId, {
+      type: 'CLEAR_HIGHLIGHTS'
+    });
+    
+    // 更新图标状态
+    const enabled = tabHighlightStatus.get(tabId) ?? highlightEnabled;
+    await updateActionIcon(tabId, enabled, false);
+    
+    console.log(`Highlights cleared for tab ${tabId}`);
+  } catch (error) {
+    console.error('Failed to clear highlights for tab:', error);
   }
 }
 
@@ -121,37 +205,60 @@ async function checkTabHighlights(tabId: number) {
 }
 
 // 监听来自侧边栏和 content script 的消息
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  // 处理高亮相关消息
-  if (request.type === 'HIGHLIGHT_CREATED') {
-    if (sender.tab?.id) {
-      // 更新图标，显示该页面有高亮内容
-      const enabled = tabHighlightStatus.get(sender.tab.id) ?? highlightEnabled;
-      updateActionIcon(sender.tab.id, enabled, true);
-    }
-    return;
-  }
-  
-  if (request.type === 'HIGHLIGHT_REMOVED') {
-    if (sender.tab?.id) {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  switch (message.type) {
+    case 'HIGHLIGHT_CREATED':
+      // 更新图标显示有高亮内容
+      if (sender.tab?.id) {
+        updateActionIcon(sender.tab.id, true, true);
+      }
+      break;
+      
+    case 'HIGHLIGHT_REMOVED':
       // 检查是否还有其他高亮内容
-      checkTabHighlights(sender.tab.id);
-    }
-    return;
-  }
-  
-  if (request.action === CONSTANTS.COMMON.MESSAGE_TYPES.GET_STORAGE_DATA) {
-    chrome.storage.local.get(null, (data) => {
-      sendResponse(data);
-    });
-    return true; // 保持消息通道开放
-  }
-
-  if (request.action === CONSTANTS.COMMON.MESSAGE_TYPES.SET_STORAGE_DATA) {
-    chrome.storage.local.set(request.data, () => {
-      sendResponse({ success: true });
-    });
-    return true;
+      if (sender.tab?.id) {
+        checkTabHighlights(sender.tab.id);
+      }
+      break;
+      
+    case 'CONTENT_SCRIPT_READY':
+      // 内容脚本初始化完成
+      console.log('Content script ready for tab:', sender.tab?.id);
+      if (sender.tab?.id) {
+        // 检查该标签页的高亮状态
+        checkTabHighlights(sender.tab.id);
+      }
+      break;
+      
+    case 'DEBUG_REQUEST':
+      // 调试请求
+      if (sender.tab?.id) {
+        chrome.tabs.sendMessage(sender.tab.id, {
+          type: 'DEBUG_INFO'
+        }).then(response => {
+          console.log('Debug info for tab:', sender.tab?.id, response);
+        }).catch(error => {
+          console.log('Failed to get debug info:', error);
+        });
+      }
+      break;
+      
+    default:
+      // 处理其他消息类型（如存储相关）
+      if (message.action === CONSTANTS.COMMON.MESSAGE_TYPES.GET_STORAGE_DATA) {
+        chrome.storage.local.get(null, (data) => {
+          sendResponse(data);
+        });
+        return true; // 保持消息通道开放
+      }
+    
+      if (message.action === CONSTANTS.COMMON.MESSAGE_TYPES.SET_STORAGE_DATA) {
+        chrome.storage.local.set(message.data, () => {
+          sendResponse({ success: true });
+        });
+        return true;
+      }
+      break;
   }
 });
 
@@ -170,6 +277,7 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   // 切换到新标签页时检查高亮状态
   setTimeout(() => {
     checkTabHighlights(activeInfo.tabId);
+    updateContextMenus(activeInfo.tabId);
   }, 500);
 });
 

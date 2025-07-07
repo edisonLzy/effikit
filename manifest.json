@@ -23,7 +23,8 @@
     "storage",
     "webRequest",
     "declarativeNetRequest",
-    "declarativeNetRequestFeedback"
+    "declarativeNetRequestFeedback",
+    "contextMenus"
   ],
   "background": {
     "service_worker": "background.ts"

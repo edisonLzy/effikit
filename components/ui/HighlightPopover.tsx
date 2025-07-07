@@ -1,6 +1,4 @@
 import React from 'react';
-import { Button } from './button';
-import { Card } from './card';
 import type { HighlightColor } from '@/highlighter';
 import { getHighlightColors, getHighlightColorName } from '@/highlighter';
 
@@ -15,7 +13,7 @@ export function HighlightPopover(props: HighlightPopoverProps) {
   const { position, selectedText, onColorSelect, onClose } = props;
   const colors = getHighlightColors();
 
-  const getColorStyle = (color: HighlightColor) => {
+  const getColorClasses = (color: HighlightColor) => {
     const colorMap: Record<HighlightColor, string> = {
       yellow: 'bg-yellow-200 hover:bg-yellow-300 border-yellow-400',
       red: 'bg-red-200 hover:bg-red-300 border-red-400',
@@ -28,39 +26,40 @@ export function HighlightPopover(props: HighlightPopoverProps) {
   };
 
   return (
-    <Card 
-      className="fixed z-[10000] p-2 shadow-lg border bg-white"
-      style={{ 
-        left: position.x, 
-        top: position.y - 10,
-        transform: 'translateY(-100%)'
-      }}
-    >
-      <div className="flex flex-col gap-2">
-        <div className="text-xs text-gray-600 max-w-48 truncate">
-          "{selectedText}"
-        </div>
-        <div className="flex gap-1">
-          {colors.map(color => (
-            <Button
-              key={color}
-              size="sm"
-              variant="outline"
-              className={`w-8 h-8 p-0 ${getColorStyle(color)}`}
-              title={getHighlightColorName(color)}
-              onClick={() => onColorSelect(color)}
-            >
-              <div className="w-4 h-4 rounded-full border border-gray-400" />
-            </Button>
-          ))}
+    <>
+      {/* 主弹窗 */}
+      <div 
+        className="fixed z-[10000] p-2 shadow-lg border bg-white rounded-lg"
+        style={{ 
+          left: position.x, 
+          top: position.y - 10,
+          transform: 'translateY(-100%)'
+        }}
+      >
+        <div className="flex flex-col gap-2">
+          <div className="text-xs text-gray-600 max-w-48 truncate">
+            "{selectedText}"
+          </div>
+          <div className="flex gap-1">
+            {colors.map(color => (
+              <button
+                key={color}
+                className={`inline-flex items-center justify-center w-8 h-8 p-0 rounded-md text-sm font-medium transition-colors border ${getColorClasses(color)}`}
+                title={getHighlightColorName(color)}
+                onClick={() => onColorSelect(color)}
+              >
+                <div className="w-4 h-4 rounded-full border border-gray-400" />
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       
-      {/* 点击外部关闭 */}
+      {/* 点击外部关闭的覆盖层 */}
       <div 
         className="fixed inset-0 z-[-1]" 
         onClick={onClose}
       />
-    </Card>
+    </>
   );
 } 
