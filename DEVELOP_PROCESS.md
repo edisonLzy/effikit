@@ -342,7 +342,7 @@ pnpm task-master expand --id=2 --prompt='the response json must wrap in markdown
    - 提升交互反馈，包含图标预览和状态指示器
 
 ### 相关问题或需求
-- 完成Task 2：工具管理UI开发的所有功能需求和子任务
+- 完成Task 2：工具管理UI开发的所有功能需求
 - 建立了Mac Launchpad风格的现代化界面设计语言
 - 实现了完整的搜索-导航-详情页面用户流程
 - 为后续工具功能集成提供了美观且实用的管理界面
@@ -726,7 +726,7 @@ pnpm task-master expand --id=2 --prompt='the response json must wrap in markdown
 ### 本次提交的详细内容总结
 - 在 `useGlobalConfig` hook 中新增了 `clearFeatureConfig` 方法，用于简化清空特定功能配置的逻辑。
 - `clearFeatureConfig` 方法会从 `chrome.storage.sync` 中移除指定功能的配置。
-- 更新了 `BellaConfigForm` 中的“清空”按钮，使其调用新的 `clearFeatureConfig` 方法来清除 Bella Workflow 的配置。
+- 更新了 `BellaConfigForm` 中的"清空"按钮，使其调用新的 `clearFeatureConfig` 方法来清除 Bella Workflow 的配置。
 
 ### 相关问题或需求
 - 简化配置管理，提供更便捷的配置清空功能。
@@ -768,3 +768,48 @@ pnpm task-master expand --id=2 --prompt='the response json must wrap in markdown
 - 使用shadcn/ui组件库保持界面一致性
 - 支持多种MIME类型的数据解析和展示
 - 良好的错误处理和用户体验设计
+
+## 本次提交内容摘要
+
+**提交时间**: 2025-07-08 00:03:23
+**提交类型**: refactor(structure)
+**提交描述**: 大规模重构目录结构，实现高内聚的 features 架构，提升可维护性与扩展性
+
+### 变更的文件
+1. background.ts - 修改（重构为 features 入口，移除混合逻辑）
+2. manifest.ts - 修改（更新 content_scripts 和 side_panel 路径）
+3. components/ui/HighlightPopover.tsx - 修改（修正高亮相关导入路径）
+4. features/highlighter/background.ts - 新增（高亮功能独立 background 脚本）
+5. features/highlighter/content-script.ts - 路径迁移+修改（高亮内容脚本高内聚）
+6. features/highlighter/dom.ts - 路径迁移
+7. features/highlighter/index.ts - 路径迁移
+8. features/highlighter/manager.ts - 路径迁移
+9. features/highlighter/storage.ts - 路径迁移
+10. features/highlighter/types.ts - 路径迁移
+11. features/highlighter/utils.ts - 路径迁移
+12. features/sidebar/background.ts - 新增（侧边栏功能独立 background 脚本）
+13. features/sidebar/404.tsx 等 - 路径迁移
+14. features/sidebar/components/ErrorTestComponent.tsx - 路径迁移+修正导入
+15. features/sidebar/tools/HighlightsManager/index.tsx - 路径迁移+修正导入
+16. features/sidebar/tools/HighlightsManager/useHighlights.ts - 路径迁移+修正导入
+...（其余 sidebar 相关文件全部迁移至 features/sidebar/）
+
+### 本次提交的详细内容总结
+本次提交对项目目录结构进行了大规模重构，主要内容包括：
+
+1. **引入 features 目录**：所有插件功能（如 highlighter、sidebar）均迁移至 features 子目录，形成高内聚、低耦合的模块化架构。
+2. **高亮与侧边栏解耦**：每个功能模块独立维护自己的 background 和 content-script，提升可维护性和扩展性。
+3. **根 background.ts 精简为入口**：统一引入 features 下各模块的 background 逻辑，职责清晰。
+4. **manifest.json 路径更新**：content_scripts、side_panel 等路径全部指向新 features 目录，确保构建和运行无误。
+5. **所有相关导入路径修正**：包括高亮管理、UI组件、工具管理等，全部适配新目录结构。
+6. **构建与开发验证通过**：pnpm build/dev 均无报错，功能正常。
+
+本次重构极大提升了项目的可维护性、可扩展性和团队协作效率，为后续功能开发和模块化管理奠定了坚实基础。
+
+### 相关问题或需求
+- 支持插件功能模块化、独立开发与维护
+- 提升代码结构清晰度和可扩展性
+- 解决历史遗留的目录混乱和依赖耦合问题
+- 为后续功能扩展和团队协作提供标准化架构
+
+---

@@ -1,8 +1,8 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { HighlightPopover } from '@/components/ui/HighlightPopover';
-import { highlightManager } from '@/highlighter';
-import type { HighlightColor } from '@/highlighter';
+import { highlightManager } from '@/features/highlighter';
+import type { HighlightColor } from '@/features/highlighter';
 
 console.log('EffiKit content script loaded');
 

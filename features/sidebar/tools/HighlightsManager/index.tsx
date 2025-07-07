@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Highlighter, ExternalLink, Trash2, Copy } from 'lucide-react';
 import { useHighlights } from './useHighlights';
-import type { Highlight } from '@/highlighter';
-import { getHighlightColorName } from '@/highlighter';
+import type { Highlight } from '@/features/highlighter';
+import { getHighlightColorName } from '@/features/highlighter';
 
 export function HighlightsManager() {
   const { 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Highlight } from '@/highlighter';
-import { getHighlightsByUrl, removeHighlight as removeHighlightFromStorage, clearHighlights as clearHighlightsFromStorage } from '@/highlighter';
+import type { Highlight } from '@/features/highlighter';
+import { getHighlightsByUrl, removeHighlight as removeHighlightFromStorage, clearHighlights as clearHighlightsFromStorage } from '@/features/highlighter';
 import { useToast } from '@/hooks/useToast';
 
 export function useHighlights() {

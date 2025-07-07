@@ -1,9 +1,22 @@
-import { CONSTANTS } from './lib/constants';
-import { initialRequestInterceptorBackground } from './sidebar/tools/RequestInterceptor/_background';
+// EffiKit 扩展的主要background脚本
+// 作为各个features的background逻辑的入口点
 
-// 高亮功能状态管理
-let highlightEnabled = true;
-const tabHighlightStatus = new Map<number, boolean>();
+// 导入各个features的background逻辑
+import { 
+  createHighlightContextMenus,
+  handleHighlightContextMenuClick,
+  updateHighlightContextMenus,
+  checkTabHighlights,
+  handleHighlightMessage,
+  handleHighlightTabUpdate,
+  handleHighlightTabActivate,
+  initializeHighlightStorage
+} from './features/highlighter/background';
+
+import { 
+  handleSidebarMessage,
+  initializeSidebarBackground
+} from './features/sidebar/background';
 
 // 处理扩展图标点击事件
 chrome.action.onClicked.addListener(async (tab) => {
@@ -27,276 +40,70 @@ chrome.runtime.onInstalled.addListener((details) => {
 function createContextMenus() {
   // 清除现有菜单
   chrome.contextMenus.removeAll(() => {
-    // 创建主菜单
-    chrome.contextMenus.create({
-      id: 'effikit-highlight-toggle',
-      title: '切换高亮功能',
-      contexts: ['action']
-    });
-    
-    chrome.contextMenus.create({
-      id: 'effikit-highlight-clear',
-      title: '清除当前页面高亮',
-      contexts: ['action']
-    });
-    
-    chrome.contextMenus.create({
-      id: 'effikit-separator',
-      type: 'separator',
-      contexts: ['action']
-    });
-    
-    chrome.contextMenus.create({
-      id: 'effikit-open-manager',
-      title: '打开高亮管理',
-      contexts: ['action']
-    });
+    // 创建高亮相关菜单
+    createHighlightContextMenus();
   });
 }
 
 // 处理右键菜单点击
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  if (!tab?.id) return;
+  // 处理高亮相关的菜单点击
+  const highlightHandled = await handleHighlightContextMenuClick(info, tab);
   
-  switch (info.menuItemId) {
-    case 'effikit-highlight-toggle':
-      await toggleHighlightForTab(tab.id);
-      // 更新菜单标题
-      await updateContextMenus(tab.id);
-      break;
-      
-    case 'effikit-highlight-clear':
-      await clearHighlightsForTab(tab.id);
-      break;
-      
-    case 'effikit-open-manager':
-      // 打开侧边栏并导航到高亮管理
-      chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
-      // 可以发送消息给侧边栏来导航到高亮管理工具
-      break;
+  if (!highlightHandled) {
+    // 如果高亮功能没有处理这个菜单项，可以在这里处理其他功能的菜单
+    console.log('Unhandled context menu item:', info.menuItemId);
   }
 });
 
-// 更新右键菜单状态
-async function updateContextMenus(tabId: number) {
-  try {
-    const enabled = tabHighlightStatus.get(tabId) ?? highlightEnabled;
-    const title = enabled ? '禁用高亮功能' : '启用高亮功能';
-    
-    chrome.contextMenus.update('effikit-highlight-toggle', {
-      title: title
-    });
-  } catch (error) {
-    console.error('Failed to update context menus:', error);
-  }
-}
-
-// 切换标签页的高亮功能
-async function toggleHighlightForTab(tabId: number) {
-  try {
-    // 获取当前标签页的高亮状态
-    const currentEnabled = tabHighlightStatus.get(tabId) ?? highlightEnabled;
-    const newEnabled = !currentEnabled;
-    
-    // 更新状态
-    tabHighlightStatus.set(tabId, newEnabled);
-    
-    // 发送消息给 content script
-    chrome.tabs.sendMessage(tabId, {
-      type: 'TOGGLE_HIGHLIGHT',
-      payload: { enabled: newEnabled }
-    });
-    
-    // 更新图标（需要检查是否有高亮内容）
-    await updateActionIcon(tabId, newEnabled, false);
-    
-    console.log(`Highlight toggled for tab ${tabId}: ${newEnabled}`);
-  } catch (error) {
-    console.error('Failed to toggle highlight for tab:', error);
-  }
-}
-
-// 清除标签页的高亮内容
-async function clearHighlightsForTab(tabId: number) {
-  try {
-    // 发送消息给 content script 清除高亮
-    chrome.tabs.sendMessage(tabId, {
-      type: 'CLEAR_HIGHLIGHTS'
-    });
-    
-    // 更新图标状态
-    const enabled = tabHighlightStatus.get(tabId) ?? highlightEnabled;
-    await updateActionIcon(tabId, enabled, false);
-    
-    console.log(`Highlights cleared for tab ${tabId}`);
-  } catch (error) {
-    console.error('Failed to clear highlights for tab:', error);
-  }
-}
-
-// 更新扩展图标
-async function updateActionIcon(tabId: number, enabled: boolean, hasHighlights: boolean = false) {
-  try {
-    // 根据状态设置不同的图标和标题
-    let title = 'EffiKit - 开发工具集成平台';
-    let badgeText = '';
-    let badgeColor = '#4CAF50';
-    
-    if (hasHighlights) {
-      if (enabled) {
-        title += ' (高亮已启用，当前页面有高亮内容)';
-        badgeText = '●';
-        badgeColor = '#FF9800';
-      } else {
-        title += ' (高亮已禁用，当前页面有高亮内容)';
-        badgeText = '●';
-        badgeColor = '#757575';
-      }
-    } else {
-      if (enabled) {
-        title += ' (高亮已启用)';
-        badgeText = '';
-      } else {
-        title += ' (高亮已禁用)';
-        badgeText = '';
-      }
-    }
-    
-    // 设置标题
-    await chrome.action.setTitle({ 
-      tabId, 
-      title 
-    });
-    
-    // 设置徽章
-    await chrome.action.setBadgeText({
-      tabId,
-      text: badgeText
-    });
-    
-    await chrome.action.setBadgeBackgroundColor({
-      tabId,
-      color: badgeColor
-    });
-    
-  } catch (error) {
-    console.error('Failed to update action icon:', error);
-  }
-}
-
-// 检查标签页是否有高亮内容
-async function checkTabHighlights(tabId: number) {
-  try {
-    const response = await chrome.tabs.sendMessage(tabId, {
-      type: 'GET_HIGHLIGHT_STATUS'
-    });
-    
-    if (response) {
-      // 更新图标显示
-      const enabled = tabHighlightStatus.get(tabId) ?? highlightEnabled;
-      await updateActionIcon(tabId, enabled, response.hasHighlights);
-    }
-  } catch (error) {
-    // 忽略错误，可能是页面还没有加载 content script
-    // 设置默认状态
-    const enabled = tabHighlightStatus.get(tabId) ?? highlightEnabled;
-    await updateActionIcon(tabId, enabled, false);
-  }
-}
-
-// 监听来自侧边栏和 content script 的消息
+// 监听来自各个features的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  switch (message.type) {
-    case 'HIGHLIGHT_CREATED':
-      // 更新图标显示有高亮内容
-      if (sender.tab?.id) {
-        updateActionIcon(sender.tab.id, true, true);
-      }
-      break;
-      
-    case 'HIGHLIGHT_REMOVED':
-      // 检查是否还有其他高亮内容
-      if (sender.tab?.id) {
-        checkTabHighlights(sender.tab.id);
-      }
-      break;
-      
-    case 'CONTENT_SCRIPT_READY':
-      // 内容脚本初始化完成
-      console.log('Content script ready for tab:', sender.tab?.id);
-      if (sender.tab?.id) {
-        // 检查该标签页的高亮状态
-        checkTabHighlights(sender.tab.id);
-      }
-      break;
-      
-    case 'DEBUG_REQUEST':
-      // 调试请求
-      if (sender.tab?.id) {
-        chrome.tabs.sendMessage(sender.tab.id, {
-          type: 'DEBUG_INFO'
-        }).then(response => {
-          console.log('Debug info for tab:', sender.tab?.id, response);
-        }).catch(error => {
-          console.log('Failed to get debug info:', error);
-        });
-      }
-      break;
-      
-    default:
-      // 处理其他消息类型（如存储相关）
-      if (message.action === CONSTANTS.COMMON.MESSAGE_TYPES.GET_STORAGE_DATA) {
-        chrome.storage.local.get(null, (data) => {
-          sendResponse(data);
-        });
-        return true; // 保持消息通道开放
-      }
-    
-      if (message.action === CONSTANTS.COMMON.MESSAGE_TYPES.SET_STORAGE_DATA) {
-        chrome.storage.local.set(message.data, () => {
-          sendResponse({ success: true });
-        });
-        return true;
-      }
-      break;
+  // 处理高亮相关的消息
+  const highlightHandled = handleHighlightMessage(message, sender, sendResponse);
+  if (highlightHandled) {
+    return true;
   }
+  
+  // 处理sidebar相关的消息
+  const sidebarHandled = handleSidebarMessage(message, sender, sendResponse);
+  if (sidebarHandled) {
+    return true;
+  }
+  
+  // 如果没有任何feature处理这个消息，记录未处理的消息
+  console.log('Unhandled message:', message.type || message.action);
+  return false;
 });
 
 // 监听标签页更新事件
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && tab.url) {
-    // 页面加载完成后检查高亮状态
-    setTimeout(() => {
-      checkTabHighlights(tabId);
-    }, 1000);
-  }
+  // 处理高亮相关的标签页更新
+  await handleHighlightTabUpdate(tabId, changeInfo, tab);
 });
 
 // 监听标签页激活事件
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  // 切换到新标签页时检查高亮状态
-  setTimeout(() => {
-    checkTabHighlights(activeInfo.tabId);
-    updateContextMenus(activeInfo.tabId);
-  }, 500);
+  // 处理高亮相关的标签页激活
+  await handleHighlightTabActivate(activeInfo);
 });
 
-// 初始化扩展存储
+// 初始化扩展
 chrome.runtime.onStartup.addListener(() => {
-  chrome.storage.local.get(['effikit_settings'], (result) => {
-    if (!result.effikit_settings) {
-      // 设置默认配置
-      chrome.storage.local.set({
-        effikit_settings: {
-          networkMonitorEnabled: true,
-          responseEditingEnabled: false,
-          performanceMonitorEnabled: true,
-          automationEnabled: false,
-          highlightEnabled: true
-        }
-      });
-    }
-  });
+  initializeExtension();
 });
 
-initialRequestInterceptorBackground();
+// 初始化所有功能
+function initializeExtension() {
+  console.log('Initializing EffiKit extension...');
+  
+  // 初始化高亮功能存储
+  initializeHighlightStorage();
+  
+  // 初始化sidebar功能
+  initializeSidebarBackground();
+  
+  console.log('EffiKit extension initialized');
+}
+
+// 在扩展加载时也进行初始化
+initializeExtension();

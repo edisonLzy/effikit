@@ -1,6 +1,6 @@
 import React from 'react';
-import type { HighlightColor } from '@/highlighter';
-import { getHighlightColors, getHighlightColorName } from '@/highlighter';
+import type { HighlightColor } from '@/features/highlighter';
+import { getHighlightColors, getHighlightColorName } from '@/features/highlighter';
 
 interface HighlightPopoverProps {
   position: { x: number; y: number };
