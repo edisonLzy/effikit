@@ -363,4 +363,48 @@ html, body {
   .animate-glow-pulse {
     animation: glow-pulse 3s ease-in-out infinite;
   }
+  
+  /* 高亮功能样式 */
+  .effikit-highlight {
+    cursor: pointer;
+    padding: 1px 2px;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+  }
+
+  .effikit-highlight:hover {
+    opacity: 0.8;
+  }
+
+  .effikit-highlight-yellow {
+    background-color: rgba(255, 255, 0, 0.3);
+  }
+
+  .effikit-highlight-red {
+    background-color: rgba(255, 0, 0, 0.3);
+  }
+
+  .effikit-highlight-blue {
+    background-color: rgba(0, 0, 255, 0.3);
+  }
+
+  .effikit-highlight-green {
+    background-color: rgba(0, 255, 0, 0.3);
+  }
+
+  .effikit-highlight-purple {
+    background-color: rgba(128, 0, 128, 0.3);
+  }
+
+  .effikit-highlight-orange {
+    background-color: rgba(255, 165, 0, 0.3);
+  }
+
+  /* 限制行数显示 */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }

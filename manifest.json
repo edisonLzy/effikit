@@ -14,7 +14,7 @@
     "default_title": "打开 EffiKit 开发工具"
   },
   "side_panel": {
-    "default_path": "sidebar/index.html"
+    "default_path": "features/sidebar/index.html"
   },
   "permissions": [
     "sidePanel",
@@ -23,12 +23,19 @@
     "storage",
     "webRequest",
     "declarativeNetRequest",
-    "declarativeNetRequestFeedback"
+    "declarativeNetRequestFeedback",
+    "contextMenus"
   ],
   "background": {
     "service_worker": "background.ts"
   },
-  
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["features/highlighter/content-script.ts"],
+      "run_at": "document_end"
+    }
+  ],
   "host_permissions": [
     "<all_urls>"
   ]
