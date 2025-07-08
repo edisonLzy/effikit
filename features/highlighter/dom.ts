@@ -1,5 +1,7 @@
+import { highlightManager } from './manager';
 import type { Highlight, HighlightColor } from './types';
 import { getHighlightColorClass } from './utils';
+import { shadowStyleManager } from './shadow-style-manager';
 
 const HIGHLIGHT_SPAN_CLASS = 'effikit-highlight';
 const HIGHLIGHT_CONTAINER_ID = 'effikit-highlight-container';
@@ -20,6 +22,9 @@ export function wrapSelectionWithHighlight(
     span.className = `${HIGHLIGHT_SPAN_CLASS} ${getHighlightColorClass(color)}`;
     span.dataset.highlightId = highlightId;
     span.dataset.highlightColor = color;
+    
+    // 添加点击事件监听器
+    addHighlightClickListener(span);
     
     // 检查是否已经在高亮范围内
     if (isRangeInHighlight(range)) {
@@ -44,64 +49,11 @@ export function wrapSelectionWithHighlight(
   }
 }
 
-export function removeHighlightFromDOM(highlightId: string): boolean {
-  try {
-    const highlightSpan = document.querySelector(`[data-highlight-id="${highlightId}"]`);
-    if (highlightSpan) {
-      const parent = highlightSpan.parentNode;
-      if (parent) {
-        // 将高亮内容移到父节点中，移除高亮包装
-        while (highlightSpan.firstChild) {
-          parent.insertBefore(highlightSpan.firstChild, highlightSpan);
-        }
-        parent.removeChild(highlightSpan as ChildNode);
-        
-        // 合并相邻的文本节点
-        parent.normalize();
-        return true;
-      }
-    }
-    return false;
-  } catch (error) {
-    console.error('Failed to remove highlight from DOM:', error);
-    return false;
-  }
-}
-
 export function renderHighlightInDOM(highlight: Highlight): boolean {
   try {
-    // 尝试根据文本内容找到对应的位置并高亮
-    const textNodes = getTextNodes(document.body);
-    const targetText = highlight.text;
-    
-    for (const node of textNodes) {
-      const nodeText = node.textContent || '';
-      const index = nodeText.indexOf(targetText);
-      
-      if (index !== -1) {
-        const range = document.createRange();
-        range.setStart(node, index);
-        range.setEnd(node, index + targetText.length);
-        
-        const span = document.createElement('span');
-        span.className = `${HIGHLIGHT_SPAN_CLASS} ${getHighlightColorClass(highlight.color)}`;
-        span.dataset.highlightId = highlight.id;
-        span.dataset.highlightColor = highlight.color;
-        
-        try {
-          range.surroundContents(span);
-          return true;
-        } catch (error) {
-          // 如果 surroundContents 失败，使用 extractContents 和 insertNode
-          const contents = range.extractContents();
-          span.appendChild(contents);
-          range.insertNode(span);
-          return true;
-        }
-      }
-    }
-    
-    return false;
+    // 使用新的 Shadow DOM 实现
+    createHighlightInDOM(highlight);
+    return true;
   } catch (error) {
     console.error('Failed to render highlight in DOM:', error);
     return false;
@@ -193,7 +145,7 @@ function isRangeInHighlight(range: Range): boolean {
   while (node) {
     if (node.nodeType === Node.ELEMENT_NODE) {
       const element = node as Element;
-      if (element.classList.contains(HIGHLIGHT_SPAN_CLASS)) {
+      if (element.classList && element.classList.contains(HIGHLIGHT_SPAN_CLASS)) {
         return true;
       }
     }
@@ -204,7 +156,7 @@ function isRangeInHighlight(range: Range): boolean {
   while (node) {
     if (node.nodeType === Node.ELEMENT_NODE) {
       const element = node as Element;
-      if (element.classList.contains(HIGHLIGHT_SPAN_CLASS)) {
+      if (element.classList && element.classList.contains(HIGHLIGHT_SPAN_CLASS)) {
         return true;
       }
     }
@@ -215,28 +167,263 @@ function isRangeInHighlight(range: Range): boolean {
 }
 
 function getNodePath(node: Node): string {
-  const path: string[] = [];
+  const path: number[] = [];
   let current: Node | null = node;
   
   while (current && current !== document.body) {
-    if (current.nodeType === Node.ELEMENT_NODE) {
-      const element = current as Element;
-      const tagName = element.tagName.toLowerCase();
-      const siblings = Array.from(element.parentNode?.children || []);
-      const index = siblings.indexOf(element);
-      path.unshift(`${tagName}[${index}]`);
-    } else if (current.nodeType === Node.TEXT_NODE) {
-      const parent = current.parentNode;
-      if (parent) {
-        const textNodes = Array.from(parent.childNodes).filter(
-          n => n.nodeType === Node.TEXT_NODE
-        );
-        const index = textNodes.indexOf(current as Text);
-        path.unshift(`text[${index}]`);
-      }
+    const parentNode: Node | null = current.parentNode;
+    if (parentNode) {
+      const index = Array.from(parentNode.childNodes).indexOf(current as ChildNode);
+      path.unshift(index);
     }
-    current = current.parentNode;
+    current = parentNode;
   }
   
-  return path.join('/');
+  return JSON.stringify(path);
+}
+
+function addHighlightClickListener(highlightSpan: HTMLElement) {
+  highlightSpan.addEventListener('click', (event) => {
+    event.stopPropagation();
+    
+    const highlightId = highlightSpan.dataset.highlightId;
+    if (highlightId) {
+      // 暂时使用控制台输出，稍后在 manager 中实现 showContentManager 方法
+      console.log('Show content manager for highlight:', highlightId);
+    }
+  });
+}
+
+/**
+ * 在文档中创建高亮视觉效果
+ */
+export function createHighlightInDOM(highlight: Highlight): void {
+  const range = createRangeFromStoredData(highlight.range);
+  if (!range) return;
+
+  // 为高亮创建 Shadow DOM 容器
+  const shadowData = shadowStyleManager.createShadowHost(`highlight-${highlight.id}`);
+  
+  // 注入高亮样式
+  injectHighlightStyles(shadowData.shadowRoot, highlight.color);
+
+  // 使用原生 Range API 包装内容
+  try {
+    const span = document.createElement('span');
+    span.className = 'effikit-highlight-wrapper';
+    span.setAttribute('data-highlight-id', highlight.id);
+    span.setAttribute('data-color', highlight.color);
+    
+    // 将 Shadow DOM host 插入到 span 中
+    span.appendChild(shadowData.host);
+    
+    // 在 Shadow DOM 中创建高亮背景
+    const highlightBg = document.createElement('div');
+    highlightBg.className = `highlight-bg color-${highlight.color}`;
+    shadowData.shadowRoot.appendChild(highlightBg);
+    
+    // 包装选中的内容
+    range.surroundContents(span);
+    
+    // 添加点击事件监听器
+    span.addEventListener('click', (event) => {
+      event.stopPropagation();
+      // 暂时使用控制台输出，稍后在 manager 中实现 showContentManager 方法
+      console.log('Show content manager for highlight:', highlight.id);
+    });
+    
+    // 确保高亮背景覆盖整个文本区域
+    updateHighlightPosition(span, highlightBg);
+    
+  } catch (error) {
+    console.warn('Failed to create highlight in DOM:', error);
+    shadowStyleManager.destroyShadowHost(`highlight-${highlight.id}`);
+  }
+}
+
+/**
+ * 更新高亮背景位置以覆盖文本
+ */
+function updateHighlightPosition(wrapper: HTMLElement, highlightBg: HTMLElement): void {
+  const rect = wrapper.getBoundingClientRect();
+  const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+  const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+  
+  // 设置高亮背景的位置和大小
+  Object.assign(highlightBg.style, {
+    position: 'absolute',
+    left: `${rect.left + scrollX}px`,
+    top: `${rect.top + scrollY}px`,
+    width: `${rect.width}px`,
+    height: `${rect.height}px`,
+    pointerEvents: 'none',
+    zIndex: '-1'
+  });
+}
+
+/**
+ * 向 Shadow DOM 注入高亮样式
+ */
+function injectHighlightStyles(shadowRoot: ShadowRoot, color: HighlightColor): void {
+  const style = document.createElement('style');
+  
+  style.textContent = `
+    :host {
+      position: relative;
+      display: contents;
+    }
+    
+    .highlight-bg {
+      border-radius: 2px;
+      transition: opacity 0.2s ease;
+      opacity: 0.3;
+    }
+    
+    .highlight-bg:hover {
+      opacity: 0.5;
+    }
+    
+    .highlight-bg.color-yellow {
+      background-color: #ffd700;
+    }
+    
+    .highlight-bg.color-red {
+      background-color: #ff6b6b;
+    }
+    
+    .highlight-bg.color-blue {
+      background-color: #4dabf7;
+    }
+    
+    .highlight-bg.color-green {
+      background-color: #51cf66;
+    }
+    
+    .highlight-bg.color-purple {
+      background-color: #9775fa;
+    }
+    
+    .highlight-bg.color-orange {
+      background-color: #ff922b;
+    }
+  `;
+  
+  shadowRoot.appendChild(style);
+}
+
+/**
+ * 从存储的数据重建 Range 对象
+ */
+function createRangeFromStoredData(rangeData: any): Range | null {
+  try {
+    const range = document.createRange();
+    
+    // 查找起始和结束节点
+    const startNode = findTextNode(rangeData.startContainer);
+    const endNode = findTextNode(rangeData.endContainer);
+    
+    if (!startNode || !endNode) {
+      return null;
+    }
+    
+    range.setStart(startNode, rangeData.startOffset);
+    range.setEnd(endNode, rangeData.endOffset);
+    
+    return range;
+  } catch (error) {
+    console.warn('Failed to recreate range:', error);
+    return null;
+  }
+}
+
+/**
+ * 根据路径查找文本节点
+ */
+function findTextNode(path: number[]): Node | null {
+  let node: Node = document.body;
+  
+  for (const index of path) {
+    if (node.childNodes[index]) {
+      node = node.childNodes[index];
+    } else {
+      return null;
+    }
+  }
+  
+  return node.nodeType === Node.TEXT_NODE ? node : null;
+}
+
+/**
+ * 移除文档中的高亮效果
+ */
+export function removeHighlightFromDOM(highlightId: string): void {
+  const highlightElement = document.querySelector(`[data-highlight-id="${highlightId}"]`);
+  if (highlightElement) {
+    // 获取高亮元素的文本内容
+    const textContent = highlightElement.textContent || '';
+    
+    // 创建文本节点替换高亮元素
+    const textNode = document.createTextNode(textContent);
+    highlightElement.parentNode?.replaceChild(textNode, highlightElement);
+    
+    // 清理 Shadow DOM
+    shadowStyleManager.destroyShadowHost(`highlight-${highlightId}`);
+    
+    // 合并相邻的文本节点
+    if (textNode.parentNode) {
+      textNode.parentNode.normalize();
+    }
+  }
+}
+
+/**
+ * 更新文档中高亮的颜色
+ */
+export function updateHighlightColor(highlightId: string, newColor: HighlightColor): void {
+  const highlightElement = document.querySelector(`[data-highlight-id="${highlightId}"]`) as HTMLElement;
+  if (highlightElement) {
+    highlightElement.setAttribute('data-color', newColor);
+    
+    // 更新 Shadow DOM 中的样式
+    const shadowHost = highlightElement.querySelector('[id^="effikit-shadow-highlight-"]') as HTMLElement;
+    if (shadowHost?.shadowRoot) {
+      const highlightBg = shadowHost.shadowRoot.querySelector('.highlight-bg');
+      if (highlightBg) {
+        // 移除旧颜色类名，添加新颜色类名
+        highlightBg.className = `highlight-bg color-${newColor}`;
+      }
+    }
+  }
+}
+
+/**
+ * 检查指定位置是否已存在高亮
+ */
+export function hasHighlightAt(range: Range): boolean {
+  const container = range.commonAncestorContainer;
+  const walker = document.createTreeWalker(
+    container,
+    NodeFilter.SHOW_ELEMENT,
+    {
+      acceptNode: (node) => {
+        return (node as Element).hasAttribute('data-highlight-id') 
+          ? NodeFilter.FILTER_ACCEPT 
+          : NodeFilter.FILTER_SKIP;
+      }
+    }
+  );
+
+  let node;
+  while (node = walker.nextNode()) {
+    const element = node as Element;
+    const highlightRange = createRangeFromStoredData(
+      JSON.parse(element.getAttribute('data-range') || '{}')
+    );
+    
+    if (highlightRange && range.intersectsNode(element)) {
+      return true;
+    }
+  }
+  
+  return false;
 } 

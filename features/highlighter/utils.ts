@@ -1,7 +1,7 @@
 import type { HighlightColor, Highlight } from './types';
 
-export function generateHighlightId(): string {
-  return `highlight_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+export function generateHighlightId(prefix: string = 'highlight'): string {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
 export function getHighlightColorClass(color: HighlightColor): string {

@@ -1,15 +1,13 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { HighlightPopover } from '@/components/ui/HighlightPopover';
+import { createElement } from 'react';
 import { highlightManager } from '@/features/highlighter';
 import type { HighlightColor } from '@/features/highlighter';
+import { domRenderer } from './ui/dom-renderer';
+import { HighlightColorPopover } from './ui/HighlightColorPopover';
 
 console.log('EffiKit content script loaded');
 
 // 高亮功能相关变量
 let isHighlightEnabled = true;
-let popoverRoot: any = null;
-let popoverContainer: HTMLElement | null = null;
 let isInitialized = false;
 let initializationAttempts = 0;
 const MAX_INIT_ATTEMPTS = 3;
@@ -119,7 +117,7 @@ function addEventListeners() {
   debugLog('Event listeners added');
 }
 
-// 注入高亮样式和 Tailwind CSS
+// 注入页面高亮样式
 function injectHighlightStyles() {
   const existingStyles = document.getElementById('effikit-highlight-styles');
   if (existingStyles) {
@@ -130,277 +128,36 @@ function injectHighlightStyles() {
   const style = document.createElement('style');
   style.id = 'effikit-highlight-styles';
   style.textContent = `
-    /* CSS 变量定义 */
-    .effikit-popover {
-      --background: oklch(1 0 0);
-      --foreground: oklch(0.145 0 0);
-      --card: oklch(1 0 0);
-      --card-foreground: oklch(0.145 0 0);
-      --popover: oklch(1 0 0);
-      --popover-foreground: oklch(0.145 0 0);
-      --primary: oklch(0.205 0 0);
-      --primary-foreground: oklch(0.985 0 0);
-      --secondary: oklch(0.97 0 0);
-      --secondary-foreground: oklch(0.205 0 0);
-      --muted: oklch(0.97 0 0);
-      --muted-foreground: oklch(0.556 0 0);
-      --accent: oklch(0.97 0 0);
-      --accent-foreground: oklch(0.205 0 0);
-      --destructive: oklch(0.577 0.245 27.325);
-      --destructive-foreground: oklch(0.577 0.245 27.325);
-      --border: oklch(0.922 0 0);
-      --input: oklch(0.922 0 0);
-      --ring: oklch(0.708 0 0);
-      --radius: 0.625rem;
-    }
-
-    /* Reset 样式防止网站样式干扰 */
-    .effikit-popover * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    }
-
-    /* Tailwind Utilities for Popover */
-    .effikit-popover .fixed { position: fixed !important; }
-    .effikit-popover .z-\\[10000\\] { z-index: 10000 !important; }
-    .effikit-popover .p-2 { padding: 0.5rem !important; }
-    .effikit-popover .shadow-lg { 
-      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important; 
-    }
-    .effikit-popover .border { 
-      border: 1px solid var(--border) !important; 
-    }
-    .effikit-popover .bg-white { 
-      background-color: rgb(255 255 255) !important; 
-    }
-    .effikit-popover .bg-card { 
-      background-color: var(--card) !important; 
-    }
-    .effikit-popover .text-card-foreground { 
-      color: var(--card-foreground) !important; 
-    }
-    .effikit-popover .rounded-lg { 
-      border-radius: 0.5rem !important; 
-    }
-    .effikit-popover .flex { 
-      display: flex !important; 
-    }
-    .effikit-popover .flex-col { 
-      flex-direction: column !important; 
-    }
-    .effikit-popover .gap-2 { 
-      gap: 0.5rem !important; 
-    }
-    .effikit-popover .gap-1 { 
-      gap: 0.25rem !important; 
-    }
-    .effikit-popover .text-xs { 
-      font-size: 0.75rem !important;
-      line-height: 1rem !important; 
-    }
-    .effikit-popover .text-gray-600 { 
-      color: rgb(75 85 99) !important; 
-    }
-    .effikit-popover .max-w-48 { 
-      max-width: 12rem !important; 
-    }
-    .effikit-popover .truncate { 
-      overflow: hidden !important;
-      text-overflow: ellipsis !important;
-      white-space: nowrap !important; 
-    }
-    .effikit-popover .w-8 { 
-      width: 2rem !important; 
-    }
-    .effikit-popover .h-8 { 
-      height: 2rem !important; 
-    }
-    .effikit-popover .w-4 { 
-      width: 1rem !important; 
-    }
-    .effikit-popover .h-4 { 
-      height: 1rem !important; 
-    }
-    .effikit-popover .p-0 { 
-      padding: 0 !important; 
-    }
-    .effikit-popover .rounded-full { 
-      border-radius: 9999px !important; 
-    }
-    .effikit-popover .border-gray-400 { 
-      border-color: rgb(156 163 175) !important; 
-    }
-    .effikit-popover .inset-0 { 
-      inset: 0px !important; 
-    }
-    .effikit-popover .z-\\[-1\\] { 
-      z-index: -1 !important; 
-    }
-
-    /* Button 样式 */
-    .effikit-popover .inline-flex { 
-      display: inline-flex !important; 
-    }
-    .effikit-popover .items-center { 
-      align-items: center !important; 
-    }
-    .effikit-popover .justify-center { 
-      justify-content: center !important; 
-    }
-    .effikit-popover .whitespace-nowrap { 
-      white-space: nowrap !important; 
-    }
-    .effikit-popover .rounded-md { 
-      border-radius: calc(var(--radius) - 2px) !important; 
-    }
-    .effikit-popover .text-sm { 
-      font-size: 0.875rem !important;
-      line-height: 1.25rem !important; 
-    }
-    .effikit-popover .font-medium { 
-      font-weight: 500 !important; 
-    }
-    .effikit-popover .transition-colors { 
-      transition-property: color, background-color, border-color, text-decoration-color, fill, stroke !important;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
-      transition-duration: 150ms !important; 
-    }
-    .effikit-popover .focus-visible\\:outline-none:focus-visible { 
-      outline: 2px solid transparent !important;
-      outline-offset: 2px !important; 
-    }
-    .effikit-popover .disabled\\:pointer-events-none:disabled { 
-      pointer-events: none !important; 
-    }
-    .effikit-popover .disabled\\:opacity-50:disabled { 
-      opacity: 0.5 !important; 
-    }
-
-    /* Button outline variant */
-    .effikit-popover .bg-background { 
-      background-color: var(--background) !important; 
-    }
-    .effikit-popover .border-input { 
-      border-color: var(--input) !important; 
-    }
-    .effikit-popover .hover\\:bg-accent:hover { 
-      background-color: var(--accent) !important; 
-    }
-    .effikit-popover .hover\\:text-accent-foreground:hover { 
-      color: var(--accent-foreground) !important; 
-    }
-
-    /* Button size sm */
-    .effikit-popover .h-9 { 
-      height: 2.25rem !important; 
-    }
-    .effikit-popover .px-3 { 
-      padding-left: 0.75rem !important;
-      padding-right: 0.75rem !important; 
-    }
-
-    /* 颜色变量 */
-    .effikit-popover .bg-yellow-200 { 
-      background-color: rgb(254 240 138) !important; 
-    }
-    .effikit-popover .hover\\:bg-yellow-300:hover { 
-      background-color: rgb(253 224 71) !important; 
-    }
-    .effikit-popover .border-yellow-400 { 
-      border-color: rgb(250 204 21) !important; 
-    }
-    .effikit-popover .bg-red-200 { 
-      background-color: rgb(254 202 202) !important; 
-    }
-    .effikit-popover .hover\\:bg-red-300:hover { 
-      background-color: rgb(252 165 165) !important; 
-    }
-    .effikit-popover .border-red-400 { 
-      border-color: rgb(248 113 113) !important; 
-    }
-    .effikit-popover .bg-blue-200 { 
-      background-color: rgb(191 219 254) !important; 
-    }
-    .effikit-popover .hover\\:bg-blue-300:hover { 
-      background-color: rgb(147 197 253) !important; 
-    }
-    .effikit-popover .border-blue-400 { 
-      border-color: rgb(96 165 250) !important; 
-    }
-    .effikit-popover .bg-green-200 { 
-      background-color: rgb(187 247 208) !important; 
-    }
-    .effikit-popover .hover\\:bg-green-300:hover { 
-      background-color: rgb(134 239 172) !important; 
-    }
-    .effikit-popover .border-green-400 { 
-      border-color: rgb(74 222 128) !important; 
-    }
-    .effikit-popover .bg-purple-200 { 
-      background-color: rgb(233 213 255) !important; 
-    }
-    .effikit-popover .hover\\:bg-purple-300:hover { 
-      background-color: rgb(196 181 253) !important; 
-    }
-    .effikit-popover .border-purple-400 { 
-      border-color: rgb(167 139 250) !important; 
-    }
-    .effikit-popover .bg-orange-200 { 
-      background-color: rgb(254 215 170) !important; 
-    }
-    .effikit-popover .hover\\:bg-orange-300:hover { 
-      background-color: rgb(253 186 116) !important; 
-    }
-    .effikit-popover .border-orange-400 { 
-      border-color: rgb(251 146 60) !important; 
-    }
-
-    /* 高亮标记样式 */
     .effikit-highlight {
-      cursor: pointer !important;
-      padding: 1px 2px !important;
-      border-radius: 2px !important;
-      transition: all 0.2s ease !important;
+      cursor: pointer;
+      padding: 1px 2px;
+      border-radius: 3px;
+      transition: all 0.2s ease;
     }
-    
     .effikit-highlight:hover {
-      opacity: 0.8 !important;
+      opacity: 0.8;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
     }
-    
-    .effikit-highlight-yellow {
-      background-color: rgba(255, 255, 0, 0.3) !important;
-    }
-    
-    .effikit-highlight-red {
-      background-color: rgba(255, 0, 0, 0.3) !important;
-    }
-    
-    .effikit-highlight-blue {
-      background-color: rgba(0, 0, 255, 0.3) !important;
-    }
-    
-    .effikit-highlight-green {
-      background-color: rgba(0, 255, 0, 0.3) !important;
-    }
-    
-    .effikit-highlight-purple {
-      background-color: rgba(128, 0, 128, 0.3) !important;
-    }
-    
-    .effikit-highlight-orange {
-      background-color: rgba(255, 165, 0, 0.3) !important;
-    }
+    .effikit-highlight-yellow { background-color: rgba(255, 255, 0, 0.4); }
+    .effikit-highlight-red { background-color: rgba(255, 0, 0, 0.3); }
+    .effikit-highlight-blue { background-color: rgba(0, 0, 255, 0.3); }
+    .effikit-highlight-green { background-color: rgba(0, 255, 0, 0.3); }
+    .effikit-highlight-purple { background-color: rgba(128, 0, 128, 0.3); }
+    .effikit-highlight-orange { background-color: rgba(255, 165, 0, 0.4); }
   `;
   
   document.head.appendChild(style);
-  debugLog('Complete Tailwind styles injected for HighlightPopover');
+  debugLog('Page highlight styles injected');
 }
 
 // 处理文本选择事件
 function handleTextSelection(event: Event) {
   if (!isInitialized || !isHighlightEnabled) {
+    return;
+  }
+  
+  // 如果内容 popover 可见，则不显示颜色选择器
+  if (domRenderer.isVisible('content-popover')) {
     return;
   }
 
@@ -421,8 +178,10 @@ function handleTextSelection(event: Event) {
 
       // 检查是否点击了高亮元素
       const target = event.target as Element;
-      if (target && target.closest('.effikit-highlight')) {
+      if (target.closest(`.${'effikit-highlight'}`)) {
+        // 先隐藏颜色选择器
         hidePopover();
+        // 这里不立即返回，让点击事件继续冒泡到高亮元素的监听器
         return;
       }
 
@@ -447,30 +206,18 @@ function showHighlightPopover(selection: Selection, selectedText: string) {
     // 计算弹窗位置
     const position = {
       x: rect.left + rect.width / 2,
-      y: rect.top + window.scrollY
+      y: rect.bottom + window.scrollY + 5 // y 轴上增加一点偏移
     };
 
-    // 创建弹窗容器
-    if (!popoverContainer) {
-      popoverContainer = document.createElement('div');
-      popoverContainer.id = 'effikit-highlight-popover';
-      popoverContainer.className = 'effikit-popover';
-      document.body.appendChild(popoverContainer);
-    }
-
-    // 创建 React 根节点
-    if (!popoverRoot) {
-      popoverRoot = createRoot(popoverContainer);
-    }
-
-    // 渲染弹窗
-    popoverRoot.render(
-      React.createElement(HighlightPopover, {
-        position,
-        selectedText,
+    // 使用 domRenderer 渲染 React 组件
+    domRenderer.render(
+      createElement(HighlightColorPopover,{
+        position: position,
+        selectedText: selectedText,
         onColorSelect: handleColorSelect,
         onClose: hidePopover
-      })
+      }),
+      'color-popover'
     );
     
     debugLog('Highlight popover shown');
@@ -508,16 +255,7 @@ async function handleColorSelect(color: HighlightColor) {
 // 隐藏弹窗
 function hidePopover() {
   try {
-    if (popoverRoot && popoverContainer) {
-      popoverRoot.unmount();
-      popoverRoot = null;
-    }
-    
-    if (popoverContainer) {
-      popoverContainer.remove();
-      popoverContainer = null;
-    }
-    
+    domRenderer.unmountAll('color-popover');
     debugLog('Highlight popover hidden');
   } catch (error) {
     debugLog('Error hiding popover:', error);
@@ -637,12 +375,14 @@ async function clearAllHighlights() {
 function handleVisibilityChange() {
   if (document.hidden) {
     hidePopover();
+    domRenderer.unmountAll('content-popover');
   }
 }
 
 // 页面卸载处理
 function handleBeforeUnload() {
   hidePopover();
+  domRenderer.unmountAll();
 }
 
 // 初始化入口
