@@ -1,34 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Save, Code, AlertTriangle, Wand2, Copy, Check, Sparkles, Plus, Trash2, Loader2 } from 'lucide-react';
+import { Save, Code, AlertTriangle, Wand2, Copy, Check, Sparkles, Loader2 } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import { useBellaConfig } from './ConfigModal';
 import type { CapturedHttpRequest } from './types';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogFooter 
-} from '@/components/ui/dialog';
-
-interface CustomParam {
-  key: string;
-  value: string;
-}
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/useToast';
 
 interface MockDataDialogProps {
   isOpen: boolean;
@@ -48,46 +30,27 @@ interface AIGenerateDialogProps {
 }
 
 interface AIFormData {
-  apiEndpoint: string;
-  method: string;
-  customParams: CustomParam[];
+  url: string;
+  token: string;
+  prompt?: string;
 }
 
 function AIGenerateDialog(props: AIGenerateDialogProps) {
   const { isOpen, onClose, onGenerate, requestInfo } = props;
   const [isGenerating, setIsGenerating] = useState(false);
   const [apiError, setApiError] = useState<string>('');
+  const { config: bellaConfig } = useBellaConfig();
+  const { toast } = useToast();
 
   // 使用 react-hook-form 管理表单状态
-  const {
+  const { 
     control,
     handleSubmit,
     reset,
-    watch,
     formState: { errors, isValid }
   } = useForm<AIFormData>({
-    defaultValues: {
-      apiEndpoint: '',
-      method: requestInfo?.method || 'POST',
-      customParams: []
-    },
     mode: 'onChange'
   });
-
-  // 使用 useFieldArray 管理动态参数数组
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'customParams'
-  });
-
-  // 监听表单字段变化
-  const apiEndpoint = watch('apiEndpoint');
-  
-  useEffect(() => {
-    if (apiError && apiEndpoint) {
-      setApiError('');
-    }
-  }, [apiEndpoint, apiError]);
 
   const handleClose = useCallback(() => {
     reset();
@@ -96,38 +59,37 @@ function AIGenerateDialog(props: AIGenerateDialogProps) {
     onClose();
   }, [onClose, reset]);
 
-  const addCustomParam = useCallback(() => {
-    append({ key: '', value: '' });
-  }, [append]);
-
-  const removeCustomParam = useCallback((index: number) => {
-    remove(index);
-  }, [remove]);
-
   const onSubmit = useCallback(async (data: AIFormData) => {
     setIsGenerating(true);
     setApiError('');
 
+    if (!bellaConfig) {
+      setApiError('Bella配置未加载或不存在，请先配置。');
+      setIsGenerating(false);
+      return;
+    }
+
     try {
+
       // 构建请求参数
-      const requestData: any = {
-        method: data.method,
-        url: requestInfo?.url,
+      const requestData = {
+        tenantId: bellaConfig.tenantId,
+        workflowId: bellaConfig.workflowId,
+        userId: bellaConfig.userId,
+        responseMode: 'blocking',
+        inputs: {
+          url: data.url,
+          token: data.token,
+          prompt: data.prompt
+        }
       };
 
-      // 添加自定义参数
-      data.customParams.forEach(param => {
-        if (param.key && param.value) {
-          requestData[param.key] = param.value;
-        }
-      });
-
       // 调用AI API
-      const response = await fetch(data.apiEndpoint, {
+      const response = await fetch(bellaConfig.bellaUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer d9a710ab-2df9-47ec-9ab8-52301791db75'
+          'Authorization': `Bearer ${bellaConfig.apiKey}`,
         },
         body: JSON.stringify(requestData),
       });
@@ -136,13 +98,28 @@ function AIGenerateDialog(props: AIGenerateDialogProps) {
         throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
       }
 
-      const result = await response.text();
+      const result = await response.json();
+      
+      // 检查响应中的 data.status 是否为 "failed"
+      if (result.data?.status === 'failed') {
+        const errorMessage = result.data?.error || '未知错误';
+        toast({
+          variant: 'destructive',
+          title: 'AI生成失败',
+          description: errorMessage,
+        });
+        throw new Error(errorMessage);
+      }
       
       // 尝试解析为JSON以验证格式
       try {
         JSON.parse(result);
         onGenerate(result);
         handleClose();
+        toast({
+          title: '生成成功',
+          description: 'Mock数据已成功生成',
+        });
       } catch {
         // 如果不是有效JSON，尝试包装一下
         const wrappedResult = {
@@ -152,47 +129,24 @@ function AIGenerateDialog(props: AIGenerateDialogProps) {
         };
         onGenerate(JSON.stringify(wrappedResult, null, 2));
         handleClose();
+        toast({
+          title: '生成成功',
+          description: 'Mock数据已成功生成',
+        });
       }
     } catch (error) {
       console.error('AI生成失败:', error);
-      setApiError(error instanceof Error ? error.message : '生成失败，请检查API接口和参数');
+      const errorMessage = error instanceof Error ? error.message : '生成失败，请检查API接口和参数';
+      setApiError(errorMessage);
+      toast({
+        variant: 'destructive',
+        title: '生成失败',
+        description: errorMessage,
+      });
     } finally {
       setIsGenerating(false);
     }
   }, [requestInfo, onGenerate, handleClose]);
-
-  // 表单验证规则
-  const validateUrl = (value: string) => {
-    if (!value.trim()) {
-      return 'API 接口地址为必填项';
-    }
-    try {
-      new URL(value);
-      return true;
-    } catch {
-      return '请输入有效的URL地址';
-    }
-  };
-
-  const validateParamKey = (value: string, index: number) => {
-    const params = watch('customParams');
-    const correspondingValue = params[index]?.value;
-    
-    if (correspondingValue && !value.trim()) {
-      return 'key不能为空';
-    }
-    return true;
-  };
-
-  const validateParamValue = (value: string, index: number) => {
-    const params = watch('customParams');
-    const correspondingKey = params[index]?.key;
-    
-    if (correspondingKey && !value.trim()) {
-      return 'value不能为空';
-    }
-    return true;
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -206,162 +160,64 @@ function AIGenerateDialog(props: AIGenerateDialogProps) {
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 space-y-6 overflow-auto min-h-0">
-            {/* API接口地址 */}
-            <div className="space-y-2">
-              <Label htmlFor="aiApiEndpoint" className="text-sm font-medium">
-                AI API 接口地址 <span className="text-destructive">*</span>
-              </Label>
-              <Controller
-                name="apiEndpoint"
-                control={control}
-                rules={{ validate: validateUrl }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="aiApiEndpoint"
-                    placeholder="https://api.example.com/generate-mock"
-                    className={errors.apiEndpoint ? 'border-destructive' : ''}
-                    disabled={isGenerating}
-                  />
-                )}
-              />
-              {errors.apiEndpoint && (
-                <p className="text-xs text-destructive">{errors.apiEndpoint.message}</p>
-              )}
-            </div>
-
-            {/* HTTP Method 选择 */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                HTTP Method <span className="text-destructive">*</span>
-              </Label>
-              <Controller
-                name="method"
-                control={control}
-                rules={{ required: 'HTTP Method 为必填项' }}
-                render={({ field }) => (
-                  <Select 
-                    value={field.value} 
-                    onValueChange={field.onChange}
-                    disabled={isGenerating}
-                  >
-                    <SelectTrigger className={errors.method ? 'border-destructive' : ''}>
-                      <SelectValue placeholder="选择 HTTP Method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="GET">GET</SelectItem>
-                      <SelectItem value="POST">POST</SelectItem>
-                      <SelectItem value="PUT">PUT</SelectItem>
-                      <SelectItem value="PATCH">PATCH</SelectItem>
-                      <SelectItem value="DELETE">DELETE</SelectItem>
-                      <SelectItem value="HEAD">HEAD</SelectItem>
-                      <SelectItem value="OPTIONS">OPTIONS</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.method && (
-                <p className="text-xs text-destructive">{errors.method.message}</p>
-              )}
-            </div>
-
-            {/* 自定义参数 */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">自定义参数</Label>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={addCustomParam}
-                  disabled={isGenerating}
-                  className="h-7 px-2"
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  添加参数
-                </Button>
-              </div>
-
-              {fields.length === 0 ? (
-                <div className="text-center py-6 text-muted-foreground text-sm">
-                  暂无自定义参数，点击"添加参数"来添加
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {fields.map((field, index) => (
-                    <Card key={field.id} className="p-3">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-1 grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Key</Label>
-                            <Controller
-                              name={`customParams.${index}.key`}
-                              control={control}
-                              rules={{ 
-                                validate: (value) => validateParamKey(value, index)
-                              }}
-                              render={({ field: keyField }) => (
-                                <Input
-                                  {...keyField}
-                                  placeholder="参数名"
-                                  className={errors.customParams?.[index]?.key ? 'border-destructive' : ''}
-                                  disabled={isGenerating}
-                                />
-                              )}
-                            />
-                            {errors.customParams?.[index]?.key && (
-                              <p className="text-xs text-destructive">
-                                {errors.customParams[index]?.key?.message}
-                              </p>
-                            )}
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Value</Label>
-                            <Controller
-                              name={`customParams.${index}.value`}
-                              control={control}
-                              rules={{ 
-                                validate: (value) => validateParamValue(value, index)
-                              }}
-                              render={({ field: valueField }) => (
-                                <Input
-                                  {...valueField}
-                                  placeholder="参数值"
-                                  className={errors.customParams?.[index]?.value ? 'border-destructive' : ''}
-                                  disabled={isGenerating}
-                                />
-                              )}
-                            />
-                            {errors.customParams?.[index]?.value && (
-                              <p className="text-xs text-destructive">
-                                {errors.customParams[index]?.value?.message}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => removeCustomParam(index)}
-                          disabled={isGenerating}
-                          className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 mt-6"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* API错误提示 */}
             {apiError && (
               <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
                 <p className="text-sm text-destructive">{apiError}</p>
               </div>
             )}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="url">URL</Label>
+                <Controller
+                  name="url"
+                  control={control}
+                  rules={{ required: 'URL是必填项' }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      id="url"
+                      placeholder="请输入 Weapon URL"
+                      className="mt-1"
+                    />
+                  )}
+                />
+                {errors.url && <p className="text-destructive text-sm mt-1">{errors.url.message}</p>}
+              </div>
+              <div>
+                <Label htmlFor="token">Token</Label>
+                <Controller
+                  name="token"
+                  control={control}
+                  rules={{ required: 'Token是必填项' }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      id="token"
+                      type="password"
+                      placeholder="请输入认证Token"
+                      className="mt-1"
+                    />
+                  )}
+                />
+                {errors.token && <p className="text-destructive text-sm mt-1">{errors.token.message}</p>}
+              </div>
+              <div>
+                <Label htmlFor="prompt">Prompt</Label>
+                <Controller
+                  name="prompt"
+                  control={control}
+                  render={({ field }) => (
+                    <textarea
+                      {...field}
+                      id="prompt"
+                      rows={5}
+                      placeholder="请输入Prompt，例如：请生成一个符合以下JSON Schema的Mock数据：{ 'type': 'object', 'properties': { 'name': { 'type': 'string' } } }。这个Prompt可以用来约束AI的响应格式。"
+                      className="mt-1 flex h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  )}
+                />
+              </div>
+            </div>
           </div>
 
           <DialogFooter className="flex flex-row gap-2 justify-end">

@@ -1,6 +1,5 @@
 {
   "preferredEditor": "cursor",
-  "checkpointing": { "enabled": true },
   "telemetry": {
     "enabled": true,
     "target": "local",
