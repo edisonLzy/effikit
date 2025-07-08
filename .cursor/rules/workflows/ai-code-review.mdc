@@ -11,7 +11,9 @@ This document outlines the automated workflow for conducting a code review on a 
     - Verify that the corresponding command-line tool (`gh`) is installed and available in the system's PATH.
     - Execute the appropriate shell command:
       ```shell
-```
+         # For GitHub
+      command -v gh
+       ```
 - **Success**: The command returns a path to the executable and exits with a status code of 0.
 - **Error Handling**: If the command fails, abort the workflow and notify the user.
     
