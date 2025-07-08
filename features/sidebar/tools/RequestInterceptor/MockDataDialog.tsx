@@ -104,8 +104,8 @@ function AIGenerateDialog(props: AIGenerateDialogProps) {
       if (result.data?.status === 'failed') {
         const errorMessage = result.data?.error || '未知错误';
         toast({
-          variant: "destructive",
-          title: "AI生成失败",
+          variant: 'destructive',
+          title: 'AI生成失败',
           description: errorMessage,
         });
         throw new Error(errorMessage);
@@ -117,8 +117,8 @@ function AIGenerateDialog(props: AIGenerateDialogProps) {
         onGenerate(result);
         handleClose();
         toast({
-          title: "生成成功",
-          description: "Mock数据已成功生成",
+          title: '生成成功',
+          description: 'Mock数据已成功生成',
         });
       } catch {
         // 如果不是有效JSON，尝试包装一下
@@ -130,8 +130,8 @@ function AIGenerateDialog(props: AIGenerateDialogProps) {
         onGenerate(JSON.stringify(wrappedResult, null, 2));
         handleClose();
         toast({
-          title: "生成成功",
-          description: "Mock数据已成功生成",
+          title: '生成成功',
+          description: 'Mock数据已成功生成',
         });
       }
     } catch (error) {
@@ -139,8 +139,8 @@ function AIGenerateDialog(props: AIGenerateDialogProps) {
       const errorMessage = error instanceof Error ? error.message : '生成失败，请检查API接口和参数';
       setApiError(errorMessage);
       toast({
-        variant: "destructive",
-        title: "生成失败",
+        variant: 'destructive',
+        title: '生成失败',
         description: errorMessage,
       });
     } finally {

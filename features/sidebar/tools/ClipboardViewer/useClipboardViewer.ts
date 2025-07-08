@@ -58,9 +58,9 @@ export function useClipboardViewer() {
       });
       setClipboardItems(collectedItems);
     } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-        console.error('Failed to read clipboard contents:', err);
-        setError(`Failed to read clipboard contents: ${errorMessage}`);
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Failed to read clipboard contents:', err);
+      setError(`Failed to read clipboard contents: ${errorMessage}`);
     }
   }, []);
 

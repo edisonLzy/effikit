@@ -90,7 +90,7 @@ export function JSONViewer() {
   }, []);
 
   return (
-    <div className="flex flex-col h-full bg-black p-6">
+    <div className="flex flex-col h-full overflow-y-auto bg-black p-6">
       {/* 标题区域 */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
