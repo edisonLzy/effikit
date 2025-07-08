@@ -1,35 +1,28 @@
 # AI Code Review Workflow for Merge/Pull Requests
 
-This document outlines the automated workflow for conducting a code review on a merge/pull request using an AI assistant integrated with `glab` (for GitLab) or `gh` (for GitHub).
+This document outlines the automated workflow for conducting a code review on a merge/pull request using an AI assistant integrated with `gh` (for GitHub).
 
 ## Workflow Steps
 
 ### 1. Prerequisite: Check for CLI Tool
 - **Trigger**: The code review process is initiated.
 - **Action**:
-    - Determine the platform (GitLab or GitHub) from the request URL.
-    - Verify that the corresponding command-line tool (`glab` or `gh`) is installed and available in the system's PATH.
+    - Determine the platform (GitHub) from the request URL.
+    - Verify that the corresponding command-line tool (`gh`) is installed and available in the system's PATH.
     - Execute the appropriate shell command:
       ```shell
-      # For GitLab
-      command -v glab
-
-      # For GitHub
-      command -v gh
-      ```
+```
 - **Success**: The command returns a path to the executable and exits with a status code of 0.
 - **Error Handling**: If the command fails, abort the workflow and notify the user.
-    - For `glab`: "Error: `glab` command not found. Please install the GitLab CLI (`glab`) to proceed. Installation instructions: https://glab.cli.group/docs/installation"
-    - For `gh`: "Error: `gh` command not found. Please install the GitHub CLI (`gh`) to proceed. Installation instructions: https://cli.github.com/"
+    
+    
 
 ### 2. Extract Request ID
 
 - **Trigger**: User provides a request URL and the relevant CLI tool is installed.
 - **Action**: Parse the input string to extract the numerical ID.
 - **Input & Regex**:
-    - **GitLab Merge Request**:
-        - URL: `"https://git.lianjia.com/rent_fe/customer-service-workbench/-/merge_requests/57"`
-        - Regex: `\/merge_requests\/(\d+)`
+    
     - **GitHub Pull Request**:
         - URL: `"https://github.com/owner/repo/pull/123"`
         - Regex: `\/pull\/(\d+)`
@@ -43,10 +36,7 @@ This document outlines the automated workflow for conducting a code review on a 
 - **Action**:
     - Execute the appropriate shell command:
       ```shell
-      # For GitLab
-      glab mr diff <id>
-
-      # For GitHub
+     # For GitHub
       gh pr diff <id>
       ```
     - Capture the full output (stdout).
@@ -74,19 +64,7 @@ This document outlines the automated workflow for conducting a code review on a 
 - **Action**:
     - For each significant suggestion, post a comment to the merge/pull request.
     - The message should be in Chinese and quote the relevant code.
-    - **For GitLab**:
-      ```shell
-      glab mr note <id> --message "$(cat <<'EOF'
-代码评审建议 `[file_path]`:
-
-` ``[language]
-[code snippet to reference]
-` ``
-
-[具体的建议详情]
-EOF
-)"
-      ```
+    
     - **For GitHub**: Use `gh pr review` to add comments. This can be done per-line or as a general review comment. For simplicity, a single summary review is often effective.
       ```shell
       gh pr review <id> --body "$(cat <<'EOF'
