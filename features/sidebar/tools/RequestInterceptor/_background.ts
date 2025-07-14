@@ -176,6 +176,36 @@ export function initialRequestInterceptorBackground() {
     //
     const id = stringToHash(url);
 
+    // Create regex pattern for precise URL matching
+    // This will match the exact path and support query parameters
+    const createRegexPattern = (inputUrl: string): string => {
+      try {
+        const urlObj = new URL(inputUrl);
+        // Escape special regex characters in the URL parts
+        const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        
+        const protocol = escapeRegex(urlObj.protocol);
+        const host = escapeRegex(urlObj.host);
+        const pathname = escapeRegex(urlObj.pathname);
+        
+        // Build regex pattern: exact protocol + host + pathname, followed by optional query parameters
+        return `^${protocol}//${host}${pathname}(\\?.*)?$`;
+      } catch {
+        // Fallback: if URL parsing fails, escape the entire URL and add query parameter support
+        const escapedUrl = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return `^${escapedUrl}(\\?.*)?$`;
+      }
+    };
+
+    const matchRegexp = createRegexPattern(url);
+
+    chrome.declarativeNetRequest.isRegexSupported({
+      regex: matchRegexp
+    }, (result) => {
+      console.log('isRegexSupported', result);
+    });
+
+    // http://test-ju.ke.com/multiple-customer-service/robot/manager/pop/window/check?json=&businessCode=LH08755&userCode=30749138&windowPop=false&cache=1752480404130
     return {
       id, // Use the hash function to generate a numeric ID
       priority: 1, // Set a priority for the rule
@@ -186,7 +216,7 @@ export function initialRequestInterceptorBackground() {
         },
       },
       condition: {
-        urlFilter: `|${url}|`,
+        regexFilter: matchRegexp,
         resourceTypes: [chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST],
       },
     };
@@ -196,6 +226,8 @@ export function initialRequestInterceptorBackground() {
     console.log('Updating declarativeNetRequest rules...');
 
     const upsertRule = createDeclarativeNetRequestRule(upsertMockResponsePayload);
+
+    console.log('upsertRule', upsertRule);
 
     const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
     const existingRuleIds = existingRules.map(rule => rule.id);
