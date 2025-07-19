@@ -79,5 +79,10 @@ export function initializeSidebarBackground() {
   // 初始化存储设置
   initializeSidebarStorage();
   
+  // 添加消息监听器
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    return handleSidebarMessage(message, sender, sendResponse);
+  });
+  
   console.log('Sidebar background initialized');
-} 
+}

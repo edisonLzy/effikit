@@ -276,4 +276,33 @@ export function initializeHighlightStorage() {
       });
     }
   });
-} 
+}
+
+// 初始化Highlighter的所有background功能
+export function initializeHighlighterBackground() {
+  console.log('Initializing highlighter background...');
+  
+  // 初始化存储设置
+  initializeHighlightStorage();
+  
+  // 创建右键菜单
+  chrome.contextMenus.removeAll(() => {
+    createHighlightContextMenus();
+  });
+  
+  // 处理右键菜单点击
+  chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+    await handleHighlightContextMenuClick(info, tab);
+  });
+  
+  // 处理运行时消息
+  chrome.runtime.onMessage.addListener(handleHighlightMessage);
+  
+  // 处理标签页更新
+  chrome.tabs.onUpdated.addListener(handleHighlightTabUpdate);
+  
+  // 处理标签页激活
+  chrome.tabs.onActivated.addListener(handleHighlightTabActivate);
+  
+  console.log('Highlighter background initialized');
+}
