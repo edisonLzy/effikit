@@ -2,7 +2,7 @@
 // 专门处理高亮功能相关的background逻辑
 
 // 高亮功能状态管理
-let highlightEnabled = true;
+const highlightEnabled = true;
 const tabHighlightStatus = new Map<number, boolean>();
 
 // 创建高亮相关的右键菜单
@@ -65,7 +65,7 @@ export async function updateHighlightContextMenus(tabId: number) {
     const title = enabled ? '禁用高亮功能' : '启用高亮功能';
     
     chrome.contextMenus.update('effikit-highlight-toggle', {
-      title: title
+      title
     });
   } catch (error) {
     console.error('Failed to update highlight context menus:', error);

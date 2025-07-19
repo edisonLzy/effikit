@@ -1,10 +1,10 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Highlighter, ExternalLink, Trash2, Copy } from 'lucide-react';
 import { useHighlights } from './useHighlights';
 import type { Highlight } from '@/features/highlighter';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { getHighlightColorName } from '@/features/highlighter';
 
 export function HighlightsManager() {

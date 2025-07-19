@@ -1,7 +1,6 @@
-import { highlightManager } from './manager';
-import type { Highlight, HighlightColor } from './types';
 import { getHighlightColorClass } from './utils';
 import { shadowStyleManager } from './shadow-style-manager';
+import type { Highlight, HighlightColor } from './types';
 
 const HIGHLIGHT_SPAN_CLASS = 'effikit-highlight';
 const HIGHLIGHT_CONTAINER_ID = 'effikit-highlight-container';

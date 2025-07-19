@@ -1,6 +1,6 @@
 import React from 'react';
-import type { HighlightColor } from '../types';
 import { getHighlightColors } from '../utils';
+import type { HighlightColor } from '../types';
 
 export interface PopoverPosition {
   x: number;

@@ -1,8 +1,8 @@
 import { createElement } from 'react';
-import { highlightManager } from '@/features/highlighter';
-import type { HighlightColor } from '@/features/highlighter';
 import { domRenderer } from './ui/dom-renderer';
 import { HighlightColorPopover } from './ui/HighlightColorPopover';
+import type { HighlightColor } from '@/features/highlighter';
+import { highlightManager } from '@/features/highlighter';
 
 console.log('EffiKit content script loaded');
 
@@ -96,7 +96,7 @@ async function initializeHighlighter() {
     debugLog('❌ Failed to initialize highlighter:', error);
     
     if (initializationAttempts < MAX_INIT_ATTEMPTS) {
-      debugLog(`Retrying initialization in 2 seconds...`);
+      debugLog('Retrying initialization in 2 seconds...');
       setTimeout(initializeHighlighter, 2000);
     } else {
       debugLog('Max initialization attempts reached. Highlighter disabled.');
@@ -212,8 +212,8 @@ function showHighlightPopover(selection: Selection, selectedText: string) {
     // 使用 domRenderer 渲染 React 组件
     domRenderer.render(
       createElement(HighlightColorPopover,{
-        position: position,
-        selectedText: selectedText,
+        position,
+        selectedText,
         onColorSelect: handleColorSelect,
         onClose: hidePopover
       }),

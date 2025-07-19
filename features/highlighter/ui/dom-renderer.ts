@@ -1,6 +1,7 @@
-import React from 'react';
-import { createRoot, Root } from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 import { shadowStyleManager } from '../shadow-style-manager';
+import type React from 'react';
+import type { Root } from 'react-dom/client';
 
 type ComponentType = 'color-popover' | 'content-popover';
 

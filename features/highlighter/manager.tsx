@@ -1,12 +1,4 @@
 import React from 'react';
-import type { 
-  Highlight, 
-  HighlightColor, 
-  HighlightPayload,
-  HighlightTag,
-  TagType,
-  TagContent
-} from './types';
 import { generateHighlightId } from './utils';
 import { 
   saveHighlight, 
@@ -26,6 +18,13 @@ import {
 } from './dom';
 import { domRenderer } from './ui/dom-renderer';
 import { HighlightContentPopover } from './ui/HighlightContentPopover';
+import type { 
+  Highlight, 
+  HighlightColor,
+  HighlightTag,
+  TagType,
+  TagContent
+} from './types';
 
 export class HighlightManager {
   private isEnabled = true;

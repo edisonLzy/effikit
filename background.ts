@@ -5,14 +5,11 @@
 import { 
   createHighlightContextMenus,
   handleHighlightContextMenuClick,
-  updateHighlightContextMenus,
-  checkTabHighlights,
   handleHighlightMessage,
   handleHighlightTabUpdate,
   handleHighlightTabActivate,
   initializeHighlightStorage
 } from './features/highlighter/background';
-
 import { 
   handleSidebarMessage,
   initializeSidebarBackground

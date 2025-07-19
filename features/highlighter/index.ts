@@ -43,7 +43,9 @@ export { HighlightManager, highlightManager } from './manager';
 
 // 导出新的 UI 组件
 export * from './ui/HighlightColorPopover';
+
 export * from './ui/HighlightContentPopover';
+
 export * from './ui/dom-renderer';
 
 // 导出样式隔离相关
