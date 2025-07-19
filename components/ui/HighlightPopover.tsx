@@ -20,7 +20,9 @@ export function HighlightPopover(props: HighlightPopoverProps) {
       blue: 'bg-blue-200 hover:bg-blue-300 border-blue-400',
       green: 'bg-green-200 hover:bg-green-300 border-green-400',
       purple: 'bg-purple-200 hover:bg-purple-300 border-purple-400',
-      orange: 'bg-orange-200 hover:bg-orange-300 border-orange-400'
+      orange: 'bg-orange-200 hover:bg-orange-300 border-orange-400',
+      pink: 'bg-pink-200 hover:bg-pink-300 border-pink-400',
+      gray: 'bg-gray-200 hover:bg-gray-300 border-gray-400'
     };
     return colorMap[color];
   };
@@ -62,4 +64,4 @@ export function HighlightPopover(props: HighlightPopoverProps) {
       />
     </>
   );
-} 
+}

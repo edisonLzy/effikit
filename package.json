@@ -23,6 +23,7 @@
     "@radix-ui/react-switch": "^1.1.1",
     "@radix-ui/react-toast": "^1.2.14",
     "@uiw/react-codemirror": "^4.23.14",
+    "@webcomponents/custom-elements": "^1.6.0",
     "lucide-react": "0.487.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

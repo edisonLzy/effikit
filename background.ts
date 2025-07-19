@@ -10,7 +10,8 @@ import {
 } from './features/sidebar/background';
 
 // 处理扩展图标点击事件
-chrome.action.onClicked.addListener(async (tab) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+chrome.action.onClicked.addListener(async (_tab) => {
   // 只打开侧边栏
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 });

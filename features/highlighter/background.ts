@@ -177,7 +177,7 @@ export async function checkTabHighlights(tabId: number) {
       const enabled = tabHighlightStatus.get(tabId) ?? highlightEnabled;
       await updateActionIcon(tabId, enabled, response.hasHighlights);
     }
-  } catch (error) {
+  } catch {
     // 忽略错误，可能是页面还没有加载 content script
     // 设置默认状态
     const enabled = tabHighlightStatus.get(tabId) ?? highlightEnabled;
@@ -189,7 +189,8 @@ export async function checkTabHighlights(tabId: number) {
 export function handleHighlightMessage(
   message: any, 
   sender: chrome.runtime.MessageSender, 
-  sendResponse: (response?: any) => void
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _sendResponse: (response?: any) => void
 ): boolean {
   switch (message.type) {
     case 'HIGHLIGHT_CREATED':

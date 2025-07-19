@@ -90,13 +90,17 @@ export async function getHighlightSettings(): Promise<HighlightSettings> {
     const result = await chrome.storage.local.get(SETTINGS_KEY);
     return result[SETTINGS_KEY] || {
       enabled: true,
-      defaultColor: 'yellow'
+      defaultColor: 'yellow',
+      autoCreateWordTag: false,
+      autoCreateSentenceTag: false
     };
   } catch (error) {
     console.error('Failed to get highlight settings:', error);
     return {
       enabled: true,
-      defaultColor: 'yellow'
+      defaultColor: 'yellow',
+      autoCreateWordTag: false,
+      autoCreateSentenceTag: false
     };
   }
 }
@@ -118,4 +122,4 @@ async function getHighlightStorage(): Promise<HighlightStorage> {
     console.error('Failed to get highlight storage:', error);
     return {};
   }
-} 
+}

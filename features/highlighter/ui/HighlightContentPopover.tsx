@@ -25,8 +25,8 @@ interface HighlightContentPopoverProps {
   onUpdate: (updatedHighlight: Highlight) => void;
 }
 
-export function HighlightContentPopover({ highlight: initialHighlight, position, onClose, onUpdate }: HighlightContentPopoverProps) {
-  const [highlight, setHighlight] = useState(initialHighlight);
+export function HighlightContentPopover({ highlight: initialHighlight, position, onClose }: HighlightContentPopoverProps) {
+  const [highlight] = useState(initialHighlight);
   const [activeTagId, setActiveTagId] = useState(highlight.tags.find(t => t.isActive)?.id || (highlight.tags.length > 0 ? highlight.tags[0].id : null));
 
   const handleSetActiveTag = useCallback(async (tagId: string) => {
@@ -267,6 +267,7 @@ function WordViewer({ content }: { content: WordTagContent }) {
   );
 }
 
-function SentenceViewer({ content }: { content: SentenceTagContent }) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function SentenceViewer({ content: _content }: { content: SentenceTagContent }) {
   return <div className="sentence-viewer">句子分析功能即将推出。</div>;
-} 
+}

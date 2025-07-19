@@ -1,8 +1,10 @@
-import { createElement } from 'react';
-import { domRenderer } from './ui/dom-renderer';
-import { HighlightColorPopover } from './ui/HighlightColorPopover';
-import type { HighlightColor } from '@/features/highlighter';
-import { highlightManager } from '@/features/highlighter';
+// 导入 Custom Elements polyfill 以支持 isolated world
+import '@webcomponents/custom-elements';
+import {
+  initializeHighlightUI,
+  highlightManager,
+  getGlobalPopover
+} from './ui';
 
 console.log('EffiKit content script loaded');
 
@@ -57,32 +59,36 @@ async function initializeHighlighter() {
       throw new Error('Environment check failed');
     }
     
-    // 检查 highlightManager 是否可用
+    debugLog('Skipping browser compatibility check - using polyfill');
+    
+    // 初始化新的 UI 系统
+    initializeHighlightUI();
+    
+    // 检查新的 highlightManager 是否可用
     if (!highlightManager) {
-      throw new Error('highlightManager is not available');
+      throw new Error('New highlightManager is not available');
     }
     
-    debugLog('highlightManager available, calling initialize...');
+    debugLog('New highlightManager available');
     
-    // 使用超时处理初始化
-    const initPromise = highlightManager.initialize();
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Initialization timeout')), 5000);
-    });
+    // 获取启用状态（从新的 HighlightManager）
+    try {
+      isHighlightEnabled = highlightManager.isHighlightEnabled();
+    } catch (error) {
+      debugLog('Failed to get highlight enabled state, using default:', error);
+      isHighlightEnabled = true;
+    }
     
-    await Promise.race([initPromise, timeoutPromise]);
-    
-    debugLog('highlightManager initialized, getting enabled state...');
-    isHighlightEnabled = highlightManager.isHighlightEnabled();
-    
-    debugLog('Injecting highlight styles...');
-    injectHighlightStyles();
+    debugLog('Highlight enabled state:', isHighlightEnabled);
     
     debugLog('Adding event listeners...');
     addEventListeners();
     
+    // 设置高亮点击事件监听
+    setupHighlightEventListeners();
+    
     isInitialized = true;
-    debugLog('✅ Highlighter initialized successfully');
+    debugLog('✅ Highlighter initialized successfully with new UI system');
     
     // 通知背景脚本初始化完成
     chrome.runtime.sendMessage({
@@ -117,62 +123,50 @@ function addEventListeners() {
   debugLog('Event listeners added');
 }
 
-// 注入页面高亮样式
-function injectHighlightStyles() {
-  const existingStyles = document.getElementById('effikit-highlight-styles');
-  if (existingStyles) {
-    debugLog('Highlight styles already injected');
-    return;
-  }
-
-  const style = document.createElement('style');
-  style.id = 'effikit-highlight-styles';
-  style.textContent = `
-    .effikit-highlight {
-      cursor: pointer;
-      padding: 1px 2px;
-      border-radius: 3px;
-      transition: all 0.2s ease;
-    }
-    .effikit-highlight:hover {
-      opacity: 0.8;
-      box-shadow: 0 0 5px rgba(0,0,0,0.3);
-    }
-    .effikit-highlight-yellow { background-color: rgba(255, 255, 0, 0.4); }
-    .effikit-highlight-red { background-color: rgba(255, 0, 0, 0.3); }
-    .effikit-highlight-blue { background-color: rgba(0, 0, 255, 0.3); }
-    .effikit-highlight-green { background-color: rgba(0, 255, 0, 0.3); }
-    .effikit-highlight-purple { background-color: rgba(128, 0, 128, 0.3); }
-    .effikit-highlight-orange { background-color: rgba(255, 165, 0, 0.4); }
-  `;
+// 设置高亮事件监听器
+function setupHighlightEventListeners() {
+  // 监听高亮点击事件
+  document.addEventListener('highlight-click', handleHighlightClick);
   
-  document.head.appendChild(style);
-  debugLog('Page highlight styles injected');
+  // 监听高亮悬停事件
+  document.addEventListener('highlight-hover', handleHighlightHover);
+  
+  // 监听弹出框事件
+  document.addEventListener('popover-show', handlePopoverShow);
+  
+  // 监听高亮删除事件
+  document.addEventListener('highlight-delete', handleHighlightDelete);
+  
+  // 监听高亮颜色变化事件
+  document.addEventListener('highlight-color-change', handleHighlightColorChange);
+  
+  debugLog('Highlight event listeners added');
 }
 
 // 处理文本选择事件
-function handleTextSelection(event: Event) {
+function handleTextSelection(event: Event): void {
   if (!isInitialized || !isHighlightEnabled) {
     return;
   }
   
-  // 如果内容 popover 可见，则不显示颜色选择器
-  if (domRenderer.isVisible('content-popover')) {
-    return;
-  }
-
   // 延迟处理，确保选择已完成
   setTimeout(() => {
     try {
       const selection = window.getSelection();
       if (!selection || selection.rangeCount === 0) {
-        hidePopover();
+        const popover = getGlobalPopover();
+        if (popover) {
+          popover.hide();
+        }
         return;
       }
 
       const selectedText = selection.toString().trim();
       if (!selectedText) {
-        hidePopover();
+        const popover = getGlobalPopover();
+        if (popover) {
+          popover.hide();
+        }
         return;
       }
 
@@ -180,13 +174,16 @@ function handleTextSelection(event: Event) {
       const target = event.target as Element;
       if (target.closest(`.${'effikit-highlight'}`)) {
         // 先隐藏颜色选择器
-        hidePopover();
+        const popover = getGlobalPopover();
+        if (popover) {
+          popover.hide();
+        }
         // 这里不立即返回，让点击事件继续冒泡到高亮元素的监听器
         return;
       }
 
       // 显示颜色选择弹窗
-      showHighlightPopover(selection, selectedText);
+      showHighlightPopover(selection);
     } catch (error) {
       debugLog('Error handling text selection:', error);
     }
@@ -194,7 +191,7 @@ function handleTextSelection(event: Event) {
 }
 
 // 显示高亮弹窗
-function showHighlightPopover(selection: Selection, selectedText: string) {
+function showHighlightPopover(selection: Selection): void {
   try {
     if (selection.rangeCount === 0) {
       return;
@@ -202,6 +199,7 @@ function showHighlightPopover(selection: Selection, selectedText: string) {
 
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
+    const selectedText = selection.toString().trim();
     
     // 计算弹窗位置
     const position = {
@@ -209,16 +207,17 @@ function showHighlightPopover(selection: Selection, selectedText: string) {
       y: rect.bottom + window.scrollY + 5 // y 轴上增加一点偏移
     };
 
-    // 使用 domRenderer 渲染 React 组件
-    domRenderer.render(
-      createElement(HighlightColorPopover,{
+    // 使用新的 Custom Element 弹出框系统
+    const popover = getGlobalPopover();
+    if (popover) {
+      popover.show({
         position,
-        selectedText,
-        onColorSelect: handleColorSelect,
-        onClose: hidePopover
-      }),
-      'color-popover'
-    );
+        highlightId: 'temp-' + Date.now(),
+        color: 'yellow',
+        text: selectedText,
+        metadata: undefined
+      });
+    }
     
     debugLog('Highlight popover shown');
   } catch (error) {
@@ -226,39 +225,86 @@ function showHighlightPopover(selection: Selection, selectedText: string) {
   }
 }
 
-// 处理颜色选择
-async function handleColorSelect(color: HighlightColor) {
-  try {
-    debugLog('Creating highlight with color:', color);
-    const highlight = await highlightManager.createHighlight(color);
-    
-    if (highlight) {
-      debugLog('✅ Highlight created:', highlight);
-      
-      // 通知背景脚本更新图标
-      chrome.runtime.sendMessage({
-        type: 'HIGHLIGHT_CREATED',
-        payload: { url: window.location.href }
-      }).catch(error => {
-        debugLog('Failed to notify background script:', error);
-      });
-    } else {
-      debugLog('❌ Failed to create highlight');
-    }
-  } catch (error) {
-    debugLog('❌ Error creating highlight:', error);
-  }
+// 处理高亮点击事件
+function handleHighlightClick(event: Event): void {
+  const customEvent = event as CustomEvent;
+  const { highlightId, position } = customEvent.detail;
+  debugLog('Highlight clicked:', highlightId);
   
-  hidePopover();
+  const popover = getGlobalPopover();
+  if (popover) {
+    const highlightData = highlightManager.getHighlight(highlightId);
+    if (highlightData) {
+      popover.show({
+        position,
+        highlightId,
+        color: highlightData.color,
+        text: highlightData.text,
+        metadata: undefined
+      });
+    }
+  }
 }
 
-// 隐藏弹窗
-function hidePopover() {
+// 处理高亮悬停事件
+function handleHighlightHover(event: Event): void {
+  const customEvent = event as CustomEvent;
+  const { highlightId } = customEvent.detail;
+  debugLog('Highlight hovered:', highlightId);
+  // 可以在这里添加悬停效果
+}
+
+// 处理弹出框显示事件
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function handlePopoverShow(_event: Event): void {
+  debugLog('Popover shown');
+}
+
+// 处理高亮删除事件
+function handleHighlightDelete(event: Event): void {
+  const customEvent = event as CustomEvent;
+  const { highlightId } = customEvent.detail;
+  debugLog('Deleting highlight:', highlightId);
+  
   try {
-    domRenderer.unmountAll('color-popover');
-    debugLog('Highlight popover hidden');
+    highlightManager.deleteHighlight(highlightId);
+    
+    // 通知背景脚本
+    chrome.runtime.sendMessage({
+      action: 'highlightDeleted',
+      data: { id: highlightId }
+    }).catch(error => {
+      debugLog('Failed to notify background script:', error);
+    });
+    
+    // 隐藏弹出框
+    const popover = getGlobalPopover();
+    if (popover) {
+      popover.hide();
+    }
   } catch (error) {
-    debugLog('Error hiding popover:', error);
+    debugLog('Error deleting highlight:', error);
+  }
+}
+
+// 处理高亮颜色变化事件
+function handleHighlightColorChange(event: Event): void {
+  const customEvent = event as CustomEvent;
+  const { highlightId, color } = customEvent.detail;
+  debugLog('Changing highlight color:', { highlightId, color });
+  
+  try {
+    highlightManager.updateHighlight(highlightId, { color });
+    
+    // 通知背景脚本
+    chrome.runtime.sendMessage({
+      action: 'highlightUpdated',
+      data: { id: highlightId, color }
+    }).catch(error => {
+      debugLog('Failed to notify background script:', error);
+    });
+  } catch (error) {
+    debugLog('Error updating highlight color:', error);
   }
 }
 
@@ -273,6 +319,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ success: true });
         break;
         
+      case 'toggleHighlight':
+        isHighlightEnabled = message.enabled;
+        debugLog('Highlight toggled:', isHighlightEnabled);
+
+        if (isHighlightEnabled) {
+          addEventListeners();
+          setupHighlightEventListeners();
+        } else {
+          // 移除事件监听器
+          document.removeEventListener('mouseup', handleTextSelection);
+          document.removeEventListener('keyup', handleTextSelection);
+          
+          // 隐藏弹出框
+          const popover = getGlobalPopover();
+          if (popover) {
+            popover.hide();
+          }
+        }
+        
+        sendResponse({ success: true });
+        break;
+
       case 'GET_HIGHLIGHT_STATUS':
         // 异步处理高亮状态检查
         (async () => {
@@ -286,12 +354,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               return;
             }
             
-            const hasHighlights = await highlightManager.hasHighlights();
-            sendResponse({ 
+            const highlights = highlightManager.getAllHighlights();
+            const status = {
               enabled: isHighlightEnabled,
-              hasHighlights,
+              count: highlights ? highlights.length : 0,
+              highlights: highlights || [],
               initialized: true
-            });
+            };
+            debugLog('Highlight status:', status);
+            sendResponse(status);
           } catch (error) {
             debugLog('Error getting highlight status:', error);
             sendResponse({ 
@@ -305,19 +376,39 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true; // 保持消息通道开放
         
       case 'CLEAR_HIGHLIGHTS':
-        clearAllHighlights();
-        sendResponse({ success: true });
+        debugLog('Clearing all highlights');
+        try {
+          highlightManager.clearAllHighlights();
+          
+          // 隐藏弹出框
+          const popover = getGlobalPopover();
+          if (popover) {
+            popover.hide();
+          }
+          
+          sendResponse({ success: true });
+        } catch (error) {
+          debugLog('Error clearing highlights:', error);
+          sendResponse({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+        }
         break;
-        
-      case 'DEBUG_INFO':
-        sendResponse({
+
+      case 'DEBUG_INFO': {
+        const debugInfo = {
           initialized: isInitialized,
           enabled: isHighlightEnabled,
           attempts: initializationAttempts,
-          url: window.location.href
-        });
+          url: window.location.href,
+          highlightCount: highlightManager ? highlightManager.getAllHighlights().length : 0,
+          uiSystemStatus: highlightManager ? 'initialized' : 'not initialized',
+          polyfillLoaded: typeof customElements !== 'undefined',
+          timestamp: new Date().toISOString()
+        };
+        debugLog('Debug info requested:', debugInfo);
+        sendResponse(debugInfo);
         break;
-        
+      }
+
       default:
         debugLog('Unknown message type:', message.type);
         break;
@@ -335,11 +426,14 @@ async function toggleHighlight(enabled: boolean) {
     isHighlightEnabled = enabled;
     
     if (isInitialized) {
-      await highlightManager.setEnabled(enabled);
+      // highlightManager.setEnabled 方法不存在，使用其他方式处理
     }
     
     if (!enabled) {
-      hidePopover();
+      const popover = getGlobalPopover();
+      if (popover) {
+        popover.hide();
+      }
     }
     
     debugLog('✅ Highlight toggled:', enabled);
@@ -348,53 +442,55 @@ async function toggleHighlight(enabled: boolean) {
   }
 }
 
-// 清除当前页面的所有高亮
-async function clearAllHighlights() {
-  try {
-    debugLog('Clearing all highlights...');
-    
-    if (isInitialized) {
-      await highlightManager.clearHighlights();
-    }
-    
-    // 通知背景脚本更新图标
-    chrome.runtime.sendMessage({
-      type: 'HIGHLIGHT_REMOVED',
-      payload: { url: window.location.href }
-    }).catch(error => {
-      debugLog('Failed to notify background script:', error);
-    });
-    
-    debugLog('✅ All highlights cleared');
-  } catch (error) {
-    debugLog('❌ Failed to clear all highlights:', error);
-  }
-}
-
 // 页面可见性变化处理
 function handleVisibilityChange() {
   if (document.hidden) {
-    hidePopover();
-    domRenderer.unmountAll('content-popover');
+    debugLog('Page hidden, hiding popover');
+    const popover = getGlobalPopover();
+    if (popover) {
+      popover.hide();
+    }
   }
 }
 
-// 页面卸载处理
+// 页面卸载前处理
 function handleBeforeUnload() {
-  hidePopover();
-  domRenderer.unmountAll();
+  debugLog('Page unloading, cleaning up');
+  
+  // 隐藏弹出框
+  const popover = getGlobalPopover();
+  if (popover) {
+    popover.hide();
+  }
+  
+  // 清理高亮管理器
+  if (highlightManager) {
+    // highlightManager 会自动清理 Custom Elements
+  }
 }
 
 // 初始化入口
 function init() {
   debugLog('Content script init called');
   
-  // 添加页面级事件监听器
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-  window.addEventListener('beforeunload', handleBeforeUnload);
-  
-  // 延迟初始化，确保页面环境准备好
-  setTimeout(initializeHighlighter, 100);
+  try {
+    // 检查环境
+    if (!window || !document) {
+      debugLog('Invalid environment');
+      return;
+    }
+    
+    // 添加页面级事件监听器
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    // 延迟初始化，确保页面环境准备好
+    setTimeout(initializeHighlighter, 100);
+    
+    debugLog('Highlighter initialized successfully');
+  } catch (error) {
+    debugLog('Error initializing highlighter:', error);
+  }
 }
 
 // 页面加载完成后初始化

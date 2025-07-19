@@ -2,7 +2,7 @@
 export type TagType = 'word' | 'annotation' | 'sentence';
 
 // 高亮颜色类型
-export type HighlightColor = 'yellow' | 'red' | 'blue' | 'green' | 'purple' | 'orange';
+export type HighlightColor = 'yellow' | 'red' | 'blue' | 'green' | 'purple' | 'orange' | 'pink' | 'gray';
 
 // 位置范围信息
 export interface TextRange {
@@ -103,4 +103,4 @@ export interface HighlightContentPopoverData {
     x: number;
     y: number;
   };
-} 
+}

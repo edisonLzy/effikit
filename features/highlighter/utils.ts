@@ -19,7 +19,9 @@ export function getHighlightColorName(color: HighlightColor): string {
     blue: '蓝色',
     green: '绿色',
     purple: '紫色',
-    orange: '橙色'
+    orange: '橙色',
+    pink: '粉色',
+    gray: '灰色'
   };
   return colorNames[color];
 }
@@ -80,4 +82,4 @@ export function createRangeFromHighlight(highlight: Highlight): Range | null {
     console.error('Failed to create range from highlight:', error);
     return null;
   }
-} 
+}
