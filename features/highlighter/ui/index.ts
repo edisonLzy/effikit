@@ -16,11 +16,11 @@ export { HighlightManager, highlightManager } from './HighlightManager';
 export type { HighlightManagerConfig, HighlightElementInfo } from './HighlightManager';
 
 // Custom Elements
-export { HighlightContentElement } from './HighlightContentElement';
-
-export type { HighlightContentProps } from './HighlightContentElement';
+export { HighlightContentElement } from './HighlightElement';
 
 export { HighlightPopoverElement } from './HighlightPopoverElement';
+
+export type { HighlightContentProps } from './HighlightElement';
 
 export type { PopoverPosition } from './HighlightPopoverElement';
 

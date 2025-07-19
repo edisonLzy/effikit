@@ -109,7 +109,7 @@
 - **状态**: 待开始
 
 #### Task 3.3: 创建高亮内容 Custom Element
-- **文件**: `ui/HighlightContentElement.ts`
+- **文件**: `ui/HighlightElement.ts`
 - **描述**: 将页面中的高亮标记从注入DOM元素改为使用Custom Element实现
 - **功能要求**:
   - 创建 `<effikit-highlight-content>` Custom Element

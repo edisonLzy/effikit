@@ -324,8 +324,6 @@ export class HighlightManager {
     return this.eventBus;
   }
 
-
-
   /**
    * 销毁管理器
    */

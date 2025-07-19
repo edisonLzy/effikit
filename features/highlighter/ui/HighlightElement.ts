@@ -80,11 +80,6 @@ export class HighlightContentElement extends ReactCustomElement {
     return ['highlight-id', 'color', 'metadata'];
   }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
-
   /**
    * 创建 React 组件
    */
