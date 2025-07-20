@@ -6,7 +6,7 @@ import type { HighlightColor } from '../types';
 /**
  * 高亮内容组件的 Props
  */
-interface HighlightContentProps {
+interface HighlightProps {
   highlightId: string;
   color: HighlightColor;
   text: string;
@@ -18,7 +18,7 @@ interface HighlightContentProps {
 /**
  * React 高亮内容组件
  */
-const HighlightContent: React.FC<HighlightContentProps> = ({
+const HighlightContent: React.FC<HighlightProps> = ({
   highlightId,
   color,
   text,
@@ -75,7 +75,7 @@ const HighlightContent: React.FC<HighlightContentProps> = ({
  * 高亮内容 Custom Element
  * 用于在页面中渲染高亮标记
  */
-export class HighlightContentElement extends ReactCustomElement {
+export class HighlightElement extends ReactCustomElement {
   static get observedAttributes(): string[] {
     return ['highlight-id', 'color', 'metadata'];
   }
@@ -310,9 +310,9 @@ export class HighlightContentElement extends ReactCustomElement {
 }
 
 // 注册 Custom Element
-if (typeof customElements !== 'undefined' && customElements && !customElements.get('effikit-highlight-content')) {
-  customElements.define('effikit-highlight-content', HighlightContentElement);
+if (typeof customElements !== 'undefined' && customElements && !customElements.get('effikit-highlight')) {
+  customElements.define('effikit-highlight', HighlightElement);
 }
 
 // 导出类型
-export type { HighlightContentProps };
+export type { HighlightProps };

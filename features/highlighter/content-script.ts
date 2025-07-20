@@ -19,6 +19,110 @@ function debugLog(message: string, data?: any) {
   console.log(`[EffiKit Debug] ${message}`, data || '');
 }
 
+// 测试函数：添加一个测试的高亮元素
+function addTestHighlightElement() {
+  try {
+    debugLog('Adding test highlight element...');
+    
+    // 查找页面中的第一个段落或文本节点
+    const targetElement = document.querySelector('p, div, span, h1, h2, h3, h4, h5, h6') || document.body;
+    
+    if (!targetElement) {
+      debugLog('No suitable target element found for test highlight');
+      return;
+    }
+    
+    // 创建测试容器
+    const testContainer = document.createElement('div');
+    testContainer.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      border: 2px solid #007bff;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10000;
+      font-family: Arial, sans-serif;
+      max-width: 300px;
+    `;
+    
+    // 添加标题
+    const title = document.createElement('h3');
+    title.textContent = 'EffiKit 高亮测试';
+    title.style.cssText = 'margin: 0 0 10px 0; color: #007bff; font-size: 16px;';
+    testContainer.appendChild(title);
+    
+    // 创建测试文本
+    const testText = document.createElement('p');
+    testText.textContent = '这是一段测试文本，其中包含 ';
+    testText.style.cssText = 'margin: 0 0 10px 0; line-height: 1.5;';
+    
+    // 创建 effikit-highlight 元素
+    const highlightElement = document.createElement('effikit-highlight');
+    highlightElement.setAttribute('highlight-id', 'test-highlight-001');
+    highlightElement.setAttribute('color', 'yellow');
+    highlightElement.textContent = '高亮文本';
+    
+    // 添加到测试文本中
+    testText.appendChild(highlightElement);
+    
+    const afterText = document.createTextNode(' 的示例。');
+    testText.appendChild(afterText);
+    
+    testContainer.appendChild(testText);
+    
+    // 添加说明
+    const description = document.createElement('p');
+    description.textContent = '如果高亮元素正常工作，上面的"高亮文本"应该显示为黄色背景。';
+    description.style.cssText = 'margin: 0; font-size: 12px; color: #666; line-height: 1.4;';
+    testContainer.appendChild(description);
+    
+    // 添加关闭按钮
+    const closeButton = document.createElement('button');
+    closeButton.textContent = '关闭测试';
+    closeButton.style.cssText = `
+      margin-top: 10px;
+      padding: 5px 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    `;
+    closeButton.onclick = () => {
+      testContainer.remove();
+      debugLog('Test highlight element removed');
+    };
+    testContainer.appendChild(closeButton);
+    
+    // 添加到页面
+    document.body.appendChild(testContainer);
+    
+    debugLog('✅ Test highlight element added successfully');
+    
+    // 检查元素是否正确注册
+    setTimeout(() => {
+      const customElement = testContainer.querySelector('effikit-highlight');
+      if (customElement) {
+        debugLog('Custom element found:', {
+          tagName: customElement.tagName,
+          attributes: Array.from(customElement.attributes).map(attr => `${attr.name}="${attr.value}"`),
+          textContent: customElement.textContent,
+          shadowRoot: customElement.shadowRoot ? 'present' : 'missing'
+        });
+      } else {
+        debugLog('❌ Custom element not found in DOM');
+      }
+    }, 1000);
+    
+  } catch (error) {
+    debugLog('❌ Error adding test highlight element:', error);
+  }
+}
+
 // 检查运行环境
 function checkEnvironment() {
   debugLog('Checking environment...');
@@ -89,6 +193,9 @@ async function initializeHighlighter() {
     
     isInitialized = true;
     debugLog('✅ Highlighter initialized successfully with new UI system');
+    
+    // 添加测试代码：插入一个测试的 effikit-highlight 元素
+    addTestHighlightElement();
     
     // 通知背景脚本初始化完成
     chrome.runtime.sendMessage({
