@@ -69,6 +69,41 @@ export async function removeHighlight(highlightId: string, url: string): Promise
   }
 }
 
+export async function updateHighlightFromStore(highlightId: string, payload: Partial<Omit<Highlight,'id'>>): Promise<boolean> {
+  try {
+    const highlights = await getHighlights();
+    const highlight = highlights.find(h => h.id === highlightId);
+    
+    if (highlight) {
+      const mergedPayload = {
+        ...highlight,
+        ...payload
+      };
+      await saveHighlight(mergedPayload);
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Failed to update highlight color:', error);
+    return false;
+  }
+}
+
+/**
+ * 删除高亮（deleteHighlight的别名函数）
+ */
+export async function deleteHighlightFromStorage(highlightId: string): Promise<void> {
+  try {
+    // 获取当前页面URL
+    const url = window.location.href;
+    await removeHighlight(highlightId, url);
+  } catch (error) {
+    console.error('Failed to delete highlight:', error);
+    throw error;
+  }
+}
+
 export async function clearHighlights(url?: string): Promise<void> {
   try {
     if (url) {

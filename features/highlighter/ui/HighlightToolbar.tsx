@@ -1,19 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { computePosition, flip, shift, offset, autoUpdate } from '@floating-ui/dom';
+import React, { useLayoutEffect } from 'react';
+import { useFloating, autoUpdate, offset, flip, shift, useDismiss, useInteractions } from '@floating-ui/react';
 import { ReactCustomElement } from './ReactCustomElement';
+import type { VirtualElement } from '@floating-ui/react';
+import { createLogger } from '@/lib/logger';
 
-interface ToolbarState {
-  isHighlighted: boolean;
-  selectedColor: string;
-  position: { x: number; y: number };
-  visible: boolean;
+const logger = createLogger('HighlightToolbar');
+
+export interface ShowToolbarOptions {
+  selection: Selection;
+  highlightId?: string;
+}
+
+export interface HighlightToolbarElementAttributes {
+  open: boolean;
+  stringifiedRect: string;
+  highlightId?: string;
 }
 
 interface HighlightToolbarProps {
   onHighlight?: () => void;
   onColorChange?: (color: string) => void;
   onDelete?: () => void;
-  initialState?: Partial<ToolbarState>;
+  attributes: HighlightToolbarElementAttributes;
 }
 
 function TagsArea() {
@@ -25,34 +33,45 @@ function TagsArea() {
 }
 
 interface ToolbarActionsProps {
-  isHighlighted: boolean;
   onHighlight: () => void;
-  onColorChange: () => void;
+  onColorChange: (color: string) => void;
   onDelete: () => void;
+  highlightId?: string;
 }
 
-function ToolbarActions({ isHighlighted, onHighlight, onColorChange, onDelete }: ToolbarActionsProps) {
+function ToolbarActions(props: ToolbarActionsProps) {
+
+  const { onColorChange, onDelete, highlightId } = props;
+
+  const isHighlighted = highlightId !== undefined;
+
+  const handleHighlight = () => {
+    const customEvent = new CustomEvent('effikit-highlight-create');
+    document.dispatchEvent(customEvent);
+  };
+
   return (
     <div className="toolbar-actions">
-      <button 
-        className="highlight-btn" 
+      <button
+        className="highlight-btn"
         data-action="highlight"
-        disabled={isHighlighted}
-        onClick={onHighlight}
+        onClick={handleHighlight}
       >
         高亮
       </button>
-      <button 
-        className="color-btn" 
-        data-action="color"
-        onClick={onColorChange}
-      >
-        颜色
-      </button>
-      <button 
-        className="delete-btn" 
+
+      {isHighlighted && (
+        <button
+          className="color-btn"
+          data-action="color"
+          onClick={() => onColorChange('#ffeb3b')}
+        >
+          颜色
+        </button>
+      )}
+      <button
+        className="delete-btn"
         data-action="delete"
-        disabled={!isHighlighted}
         onClick={onDelete}
       >
         删除
@@ -63,196 +82,96 @@ function ToolbarActions({ isHighlighted, onHighlight, onColorChange, onDelete }:
 
 function HighlightToolbar(props: HighlightToolbarProps) {
   const {
-    onHighlight = () => {},
-    onColorChange = () => {},
-    onDelete = () => {},
-    initialState = {}
+    onHighlight = () => { },
+    onColorChange = () => { },
+    onDelete = () => { },
+    attributes
   } = props;
 
-  const [state, setState] = useState<ToolbarState>({
-    isHighlighted: false,
-    selectedColor: '#fff3cd',
-    position: { x: 0, y: 0 },
-    visible: false,
-    ...initialState
+  const { open, stringifiedRect, highlightId } = attributes;
+
+  const { refs, floatingStyles, context } = useFloating({
+    placement: 'top-start',
+    strategy: 'fixed',
+    middleware: [
+      offset(4),
+      flip(),
+      shift({ padding: 8 })
+    ],
+    whileElementsMounted: autoUpdate,
   });
 
-  const toolbarRef = useRef<HTMLDivElement>(null);
-  const virtualElementRef = useRef<{ getBoundingClientRect: () => DOMRect } | null>(null);
-  const cleanupRef = useRef<(() => void) | null>(null);
+  const dismiss = useDismiss(context);
+  const { getFloatingProps } = useInteractions([
+    dismiss,
+  ]);
 
-  // 创建虚拟元素用于定位
-  const createVirtualElement = (x: number, y: number) => {
-    return {
-      getBoundingClientRect() {
-        return {
-          width: 0,
-          height: 0,
-          x,
-          y,
-          top: y,
-          left: x,
-          right: x,
-          bottom: y,
-        } as DOMRect;
-      },
-    };
-  };
+  useLayoutEffect(() => {
 
-  // 更新工具栏位置
-  const updatePosition = async () => {
-    if (!toolbarRef.current || !virtualElementRef.current) return;
+    if(!open){
+      return;
+    }
+
+    if (!stringifiedRect) {
+      return;
+    }
 
     try {
-      const { x, y } = await computePosition(
-        virtualElementRef.current,
-        toolbarRef.current,
-        {
-          placement: 'top',
-          middleware: [
-            offset(10),
-            flip(),
-            shift({ padding: 8 })
-          ],
+      const parsedRect:DOMRect = JSON.parse(stringifiedRect);
+      const { left, top, right, bottom } = parsedRect;
+      const virtualElement: VirtualElement = {
+        getBoundingClientRect() {
+          return {
+            left,
+            top,
+            right,
+            bottom,
+            height: bottom - top,
+            width: 0,
+            x: left,
+            y: bottom - top
+          };
         }
-      );
+      };
 
-      Object.assign(toolbarRef.current.style, {
-        left: `${x}px`,
-        top: `${y}px`,
-      });
+      logger.info('the reference virtualElement', virtualElement);
+      
+      refs.setReference(virtualElement);
     } catch (error) {
-      console.error('Failed to update toolbar position:', error);
+      logger.error('Failed to parse reference', error);
     }
-  };
-
-  // 显示工具栏
-  const showToolbar = (selection: Selection, position: { x: number; y: number }) => {
-    virtualElementRef.current = createVirtualElement(position.x, position.y);
-    
-    setState(prev => ({
-      ...prev,
-      position,
-      visible: true
-    }));
-
-    // 设置自动更新位置
-    if (cleanupRef.current) {
-      cleanupRef.current();
-    }
-    
-    setTimeout(() => {
-      if (toolbarRef.current && virtualElementRef.current) {
-        cleanupRef.current = autoUpdate(
-          virtualElementRef.current,
-          toolbarRef.current,
-          updatePosition
-        );
-      }
-    }, 0);
-  };
-
-  // 隐藏工具栏
-  const hideToolbar = () => {
-    setState(prev => ({ ...prev, visible: false }));
-    
-    if (cleanupRef.current) {
-      cleanupRef.current();
-      cleanupRef.current = null;
-    }
-  };
+  }, [stringifiedRect, open]);
 
   // 处理按钮点击事件
   const handleHighlight = () => {
     onHighlight();
-    setState(prev => ({ ...prev, isHighlighted: true }));
   };
 
   const handleColorChange = () => {
-    onColorChange(state.selectedColor);
+    onColorChange('#fff3cd');
   };
 
   const handleDelete = () => {
     onDelete();
-    setState(prev => ({ ...prev, isHighlighted: false }));
   };
 
-  // 处理ESC键隐藏工具栏
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && state.visible) {
-        hideToolbar();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [state.visible]);
-
-  // 处理点击外部区域隐藏工具栏
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (state.visible && toolbarRef.current && !toolbarRef.current.contains(event.target as Node)) {
-        hideToolbar();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [state.visible]);
-
-  // 清理定位更新
-  useEffect(() => {
-    return () => {
-      if (cleanupRef.current) {
-        cleanupRef.current();
-      }
-    };
-  }, []);
-
-  // 暴露方法给外部使用
-  useEffect(() => {
-    if (toolbarRef.current) {
-      (toolbarRef.current as any).showToolbar = showToolbar;
-      (toolbarRef.current as any).hideToolbar = hideToolbar;
-      (toolbarRef.current as any).updateHighlightState = (isHighlighted: boolean) => {
-        setState(prev => ({ ...prev, isHighlighted }));
-      };
-    }
-  }, []);
-
-  if (!state.visible) {
+  if (!open) {
     return null;
   }
 
-  return (
-    <div 
-      ref={toolbarRef}
-      className="effikit-highlight-toolbar"
-      style={{
-        position: 'absolute',
-        zIndex: 10000,
-        backgroundColor: 'white',
-        border: '1px solid #e1e5e9',
-        borderRadius: '8px',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-        padding: '8px',
-        minWidth: '200px',
-        opacity: state.visible ? 1 : 0,
-        transition: 'opacity 0.2s ease-in-out',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        fontSize: '14px'
-      }}
-    >
-      <TagsArea />
-      <ToolbarActions 
-        isHighlighted={state.isHighlighted}
-        onHighlight={handleHighlight}
-        onColorChange={handleColorChange}
-        onDelete={handleDelete}
-      />
-    </div>
-  );
+  return <div
+    ref={refs.setFloating}
+    style={floatingStyles}
+    {...getFloatingProps()}
+  >
+    {highlightId && <TagsArea />}
+    <ToolbarActions
+      onHighlight={handleHighlight}
+      onColorChange={handleColorChange}
+      onDelete={handleDelete}
+      highlightId={highlightId}
+    />
+  </div>;
 }
 
 // 创建自定义元素类
@@ -263,10 +182,10 @@ export class HighlightToolbarElement extends ReactCustomElement {
   static tagName = 'effikit-highlight-toolbar';
 
   static get observedAttributes() {
-    return ['visible', 'position', 'is-highlighted'];
+    return ['open', 'stringifiedRect', 'highlight-id'];
   }
 
-  static createSingletonInstance() {
+  static getInstance() {
     if (!HighlightToolbarElement.singleton) {
       HighlightToolbarElement.singleton = new HighlightToolbarElement();
       document.body.appendChild(HighlightToolbarElement.singleton);
@@ -275,15 +194,15 @@ export class HighlightToolbarElement extends ReactCustomElement {
   }
 
   protected createReactComponent(): React.ReactElement {
-    const visible = this.getAttribute('visible') === 'true';
-    const position = this.getAttribute('position') ? JSON.parse(this.getAttribute('position')!) : { x: 0, y: 0 };
-    const isHighlighted = this.getAttribute('is-highlighted') === 'true';
+    const open = this.getAttribute('open') === 'true';
+    const stringifiedRect = this.getAttribute('stringifiedRect') || '';
+    const highlightId = this.getAttribute('highlight-id') || undefined;
 
     return React.createElement(HighlightToolbar, {
-      initialState: {
-        visible,
-        position,
-        isHighlighted
+      attributes: {
+        open,
+        stringifiedRect,
+        highlightId
       },
       onHighlight: () => {
         this.dispatchCustomEvent('highlight');
@@ -306,6 +225,17 @@ export class HighlightToolbarElement extends ReactCustomElement {
         pointer-events: auto;
       }
       
+      @keyframes effikit-toolbar-fadein {
+        from {
+          opacity: 0;
+          transform: translateY(-8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
       .effikit-highlight-toolbar {
         background-color: white;
         border: 1px solid #e1e5e9;
@@ -315,6 +245,7 @@ export class HighlightToolbarElement extends ReactCustomElement {
         min-width: 200px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         font-size: 14px;
+        animation: effikit-toolbar-fadein 0.2s ease-out;
       }
       
       .tags-area {
@@ -374,19 +305,44 @@ export class HighlightToolbarElement extends ReactCustomElement {
   }
 
   // 公共方法
-  showToolbar(selection: Selection, position: { x: number; y: number }) {
-    this.setAttribute('visible', 'true');
-    this.setAttribute('position', JSON.stringify(position));
-    this.style.left = `${position.x}px`;
-    this.style.top = `${position.y}px`;
+  showToolbar(options: ShowToolbarOptions) {
+    const { selection, highlightId } = options;
+
+    if (selection.rangeCount === 0) {
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const rect = range.getClientRects();
+    const firstRect = rect[0];
+
+    this.updateToolbar({
+      open: true,
+      stringifiedRect: JSON.stringify(firstRect.toJSON()),
+      highlightId
+    });
   }
 
   hideToolbar() {
-    this.setAttribute('visible', 'false');
+    this.updateToolbar({
+      open: false
+    });
   }
 
-  updateHighlightState(isHighlighted: boolean) {
-    this.setAttribute('is-highlighted', isHighlighted.toString());
+  updateToolbar(attributes: Partial<HighlightToolbarElementAttributes>) {
+    if (attributes.open !== undefined) {
+      this.setAttribute('open', attributes.open.toString());
+    }
+    if (attributes.stringifiedRect !== undefined) {
+      this.setAttribute('stringifiedRect', attributes.stringifiedRect.toString());
+    }
+    if (attributes.highlightId !== undefined) {
+      if (attributes.highlightId) {
+        this.setAttribute('highlight-id', attributes.highlightId);
+      } else {
+        this.removeAttribute('highlight-id');
+      }
+    }
   }
 
   disconnectedCallback(): void {

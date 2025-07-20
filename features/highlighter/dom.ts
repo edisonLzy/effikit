@@ -197,7 +197,7 @@ export function applyHighlight(selection: Selection, highlight: Highlight): bool
 }
 
 /**
- * 移除高亮
+ * 移除高亮（通过ID）
  */
 export function removeHighlight(highlightId: string): boolean {
   try {
@@ -227,6 +227,105 @@ export function removeHighlight(highlightId: string): boolean {
   } catch (error) {
     console.error('Failed to remove highlight:', error);
     return false;
+  }
+}
+
+/**
+ * 移除选区内的高亮（通过Selection）
+ */
+export function removeHighlightFromSelection(selection: Selection): Highlight[] {
+  const removedHighlights: Highlight[] = [];
+  
+  try {
+    if (selection.rangeCount === 0) {
+      return removedHighlights;
+    }
+
+    const range = selection.getRangeAt(0);
+    const highlightElements: HTMLElement[] = [];
+    
+    const walker = document.createTreeWalker(
+      range.commonAncestorContainer,
+      NodeFilter.SHOW_ELEMENT,
+      {
+        acceptNode: (node) => {
+          if (node.nodeName === 'EFFIKIT-HIGHLIGHT' && range.intersectsNode(node)) {
+            return NodeFilter.FILTER_ACCEPT;
+          }
+          return NodeFilter.FILTER_REJECT;
+        }
+      }
+    );
+    
+    while (walker.nextNode()) {
+      highlightElements.push(walker.currentNode as HTMLElement);
+    }
+    
+    // 收集被移除的高亮数据
+    highlightElements.forEach(element => {
+      const highlightData = element.getAttribute('data-highlight-data');
+      if (highlightData) {
+        try {
+          const highlight = JSON.parse(highlightData) as Highlight;
+          removedHighlights.push(highlight);
+        } catch (error) {
+          console.warn('Failed to parse highlight data:', error);
+        }
+      }
+      
+      // 移除高亮元素
+      const parent = element.parentNode;
+      if (parent) {
+        while (element.firstChild) {
+          parent.insertBefore(element.firstChild, element);
+        }
+        parent.removeChild(element);
+      }
+    });
+    
+    // 合并相邻的文本节点
+    range.commonAncestorContainer.normalize();
+    
+    return removedHighlights;
+  } catch (error) {
+    console.error('Failed to remove highlights from selection:', error);
+    return removedHighlights;
+  }
+}
+
+/**
+ * 获取选区内的高亮ID
+ */
+export function getHighlightIdFromSelection(selection: Selection): string | null {
+  try {
+    if (selection.rangeCount === 0) {
+      return null;
+    }
+
+    const range = selection.getRangeAt(0);
+    
+    const walker = document.createTreeWalker(
+      range.commonAncestorContainer,
+      NodeFilter.SHOW_ELEMENT,
+      {
+        acceptNode: (node) => {
+          if (node.nodeName === HighlightElement.tagName && range.intersectsNode(node)) {
+            return NodeFilter.FILTER_ACCEPT;
+          }
+          return NodeFilter.FILTER_REJECT;
+        }
+      }
+    );
+    
+    const highlightElement = walker.nextNode() as HTMLElement;
+    if (highlightElement) {
+      return highlightElement.getAttribute('data-highlight-id');
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Failed to get highlight ID from selection:', error);
+    return null;
   }
 }
 
@@ -414,6 +513,33 @@ function getNodePath(node: Node): string {
   }
 
   return path.join('/');
+}
+
+/**
+ * 显示全局工具栏
+ */
+export function showGlobalToolbar(selection: Selection): void {
+  try {
+    // 获取当前选择区域的高亮ID（如果存在）
+    const highlightId = getHighlightIdFromSelection(selection);
+    
+    // 显示工具栏
+    const toolbarInstance = HighlightToolbarElement.getInstance();
+    toolbarInstance.showToolbar({ selection, highlightId: highlightId || undefined });
+  } catch (error) {
+    console.error('Failed to show global toolbar:', error);
+  }
+}
+
+/**
+ * 隐藏全局工具栏
+ */
+export function hideGlobalToolbar(): void {
+  try {
+    HighlightToolbarElement.getInstance().hideToolbar();
+  } catch (error) {
+    console.error('Failed to hide global toolbar:', error);
+  }
 }
 
 // 注册自定义元素
