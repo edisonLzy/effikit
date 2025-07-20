@@ -18,9 +18,12 @@ function getColorValue(color: string): string {
 /**
  * effikit-highlight 自定义元素
  */
+
 export class HighlightElement extends HTMLElement {
 
   static tagName = 'effikit-highlight';
+
+  static nodeName = 'EFFIKIT-HIGHLIGHT';
 
   static get observedAttributes() {
     return ['data-highlight-id', 'data-highlight-color'];

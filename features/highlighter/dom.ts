@@ -366,7 +366,7 @@ function isInsideHighlight(node: Node | Range): boolean {
   }
 
   while (currentNode && currentNode !== document.body) {
-    if (currentNode.nodeName === 'EFFIKIT-HIGHLIGHT') {
+    if (currentNode.nodeName === HighlightElement.nodeName) {
       return true;
     }
     currentNode = currentNode.parentNode;

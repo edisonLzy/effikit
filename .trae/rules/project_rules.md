@@ -2,7 +2,7 @@
 
 ## important rules
 
-- 不要在完成代码编写之后,自行运行脚本. 比如 `pnpm run lint` 或者 `pnpm run dev` 等等
+- 不要在完成用户任务之后,自行运行脚本. 比如 `pnpm run lint` 或者 `pnpm run dev` 等等
 
 ## Chrome Extension Guide
 
