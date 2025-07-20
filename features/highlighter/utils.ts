@@ -83,3 +83,27 @@ export function createRangeFromHighlight(highlight: Highlight): Range | null {
     return null;
   }
 }
+
+// 检查运行环境
+export function checkEnvironment() {
+  console.log('Checking environment...');
+  
+  // 检查 Chrome APIs
+  if (typeof chrome === 'undefined') {
+    console.log('❌ Chrome APIs not available');
+    return false;
+  }
+  
+  if (!chrome.runtime) {
+    console.log('❌ chrome.runtime not available');
+    return false;
+  }
+  
+  if (!chrome.storage) {
+    console.log('❌ chrome.storage not available');
+    return false;
+  }
+  
+  console.log('✅ Chrome APIs available');
+  return true;
+}
