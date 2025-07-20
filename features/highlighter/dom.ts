@@ -1,4 +1,5 @@
 import { HighlightElement } from './ui/HighlightElement';
+import { HighlightToolbarElement } from './ui/HighlightToolbar';
 import type { Highlight, HighlightTag, TextRange } from './types';
 
 /**
@@ -415,8 +416,13 @@ function getNodePath(node: Node): string {
   return path.join('/');
 }
 
+// 注册自定义元素
 export function registerHighlightElements() {
   if (!customElements.get(HighlightElement.tagName)) {
     customElements.define(HighlightElement.tagName, HighlightElement);
+  }
+
+  if (!customElements.get(HighlightToolbarElement.tagName)) {
+    customElements.define(HighlightToolbarElement.tagName, HighlightToolbarElement);
   }
 }
