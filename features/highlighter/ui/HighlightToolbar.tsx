@@ -95,21 +95,19 @@ function HighlightToolbar(props: HighlightToolbarProps) {
       const parsedRect:DOMRect = JSON.parse(stringifiedRect);
       const { left, top, right, bottom } = parsedRect;
       
-      // Fix: Add scroll offset to position toolbar correctly after page scrolling
-      const scrollX = window.scrollX || window.pageXOffset || 0;
-      const scrollY = window.scrollY || window.pageYOffset || 0;
-      
+      // Note: 使用 strategy: 'fixed' 时，坐标相对于视口
+      // range.getClientRects() 已经返回相对于视口的坐标，不需要再加滚动偏移
       const virtualElement: VirtualElement = {
         getBoundingClientRect() {
           return {
-            left: left + scrollX,
-            top: top + scrollY,
-            right: right + scrollX,
-            bottom: bottom + scrollY,
+            left,
+            top,
+            right,
+            bottom,
             height: bottom - top,
-            width: 0,
-            x: left + scrollX,
-            y: bottom - top + scrollY
+            width: right - left,
+            x: left,
+            y: top
           };
         }
       };
@@ -285,8 +283,13 @@ export class HighlightToolbarElement extends ReactCustomElement {
     if (attributes.stringifiedRect !== undefined) {
       this.setAttribute('stringifiedRect', attributes.stringifiedRect.toString());
     }
-    if (attributes.highlightId !== undefined) {
-      this.setAttribute('highlightId', attributes.highlightId.toString());
+    // 处理 highlightId：如果为 undefined 或 null，则移除属性
+    if ('highlightId' in attributes) {
+      if (attributes.highlightId) {
+        this.setAttribute('highlightId', attributes.highlightId.toString());
+      } else {
+        this.removeAttribute('highlightId');
+      }
     }
   }
 

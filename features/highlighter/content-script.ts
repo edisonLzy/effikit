@@ -1,7 +1,7 @@
 // 导入 Custom Elements polyfill 以支持 isolated world
 import '@webcomponents/custom-elements';
 import { createLogger } from '../../lib/logger';
-import { applyHighlight, createTextRangeFromSelection, restoreHighlights, registerHighlightElements, removeHighlightFromSelection, showGlobalToolbar, hideGlobalToolbar } from './dom';
+import { applyHighlight, createTextRangeFromSelection, restoreHighlights, registerHighlightElements, removeHighlightFromSelection, showGlobalToolbar, showGlobalToolbarWithId, hideGlobalToolbar } from './dom';
 import { saveHighlight, getHighlights, getHighlightSettings, deleteHighlightFromStorage, updateHighlightFromStore } from './storage';
 import { generateHighlightId, normalizeUrl } from './utils';
 import type { Highlight } from './types';
@@ -143,15 +143,15 @@ async function handleHighlightElementClick(event: CustomEvent) {
     
     // 创建一个选择范围覆盖点击的高亮元素
     const range = document.createRange();
-    range.selectNodeContents(element);
+    range.selectNode(element);  // 选择整个元素，而不仅仅是内容
     
     const selection = window.getSelection();
     if (selection) {
       selection.removeAllRanges();
       selection.addRange(range);
       
-      // 显示工具栏，传入高亮ID以显示移除按钮
-      showGlobalToolbar(selection);
+      // 直接传递高亮ID给工具栏显示函数
+      showGlobalToolbarWithId(selection, highlightId);
     }
     
     logger.debug('Highlight element clicked:', highlightId);
