@@ -309,7 +309,7 @@ export function getHighlightIdFromSelection(selection: Selection): string | null
       NodeFilter.SHOW_ELEMENT,
       {
         acceptNode: (node) => {
-          if (node.nodeName === HighlightElement.tagName && range.intersectsNode(node)) {
+          if (node.nodeName === HighlightElement.nodeName && range.intersectsNode(node)) {
             return NodeFilter.FILTER_ACCEPT;
           }
           return NodeFilter.FILTER_REJECT;
@@ -528,6 +528,19 @@ export function showGlobalToolbar(selection: Selection): void {
     toolbarInstance.showToolbar({ selection, highlightId: highlightId || undefined });
   } catch (error) {
     console.error('Failed to show global toolbar:', error);
+  }
+}
+
+/**
+ * 显示全局工具栏并直接传递高亮ID
+ */
+export function showGlobalToolbarWithId(selection: Selection, highlightId: string): void {
+  try {
+    // 显示工具栏，直接使用提供的高亮ID
+    const toolbarInstance = HighlightToolbarElement.getInstance();
+    toolbarInstance.showToolbar({ selection, highlightId });
+  } catch (error) {
+    console.error('Failed to show global toolbar with ID:', error);
   }
 }
 

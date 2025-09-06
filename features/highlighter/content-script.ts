@@ -1,7 +1,7 @@
 // 导入 Custom Elements polyfill 以支持 isolated world
 import '@webcomponents/custom-elements';
 import { createLogger } from '../../lib/logger';
-import { applyHighlight, createTextRangeFromSelection, restoreHighlights, registerHighlightElements, removeHighlightFromSelection, showGlobalToolbar, hideGlobalToolbar } from './dom';
+import { applyHighlight, createTextRangeFromSelection, restoreHighlights, registerHighlightElements, removeHighlightFromSelection, showGlobalToolbar, showGlobalToolbarWithId, hideGlobalToolbar } from './dom';
 import { saveHighlight, getHighlights, getHighlightSettings, deleteHighlightFromStorage, updateHighlightFromStore } from './storage';
 import { generateHighlightId, normalizeUrl } from './utils';
 import type { Highlight } from './types';
@@ -50,6 +50,9 @@ function setupCustomEventListeners() {
   document.addEventListener('effikit-highlight-create', handleHighlightCreate as unknown as EventListener);
   document.addEventListener('effikit-highlight-remove', handleHighlightRemove as unknown as EventListener);
   document.addEventListener('effikit-highlight-color-change', handleHighlightColorChange as unknown as EventListener);
+  
+  // 监听高亮元素点击事件
+  document.addEventListener('effikit:highlight:click', handleHighlightElementClick as unknown as EventListener);
   
   logger.debug('Custom event listeners set up');
 }
@@ -123,6 +126,37 @@ async function handleTextSelection() {
     }, 100);
   } catch (error) {
     logger.error('Failed to handle text selection:', error);
+  }
+}
+
+/**
+ * 处理高亮元素点击事件
+ */
+async function handleHighlightElementClick(event: CustomEvent) {
+  try {
+    const { id: highlightId, element } = event.detail;
+    
+    if (!highlightId || !element) {
+      logger.warn('Invalid highlight click event data');
+      return;
+    }
+    
+    // 创建一个选择范围覆盖点击的高亮元素
+    const range = document.createRange();
+    range.selectNode(element);  // 选择整个元素，而不仅仅是内容
+    
+    const selection = window.getSelection();
+    if (selection) {
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      // 直接传递高亮ID给工具栏显示函数
+      showGlobalToolbarWithId(selection, highlightId);
+    }
+    
+    logger.debug('Highlight element clicked:', highlightId);
+  } catch (error) {
+    logger.error('Failed to handle highlight element click:', error);
   }
 }
 
