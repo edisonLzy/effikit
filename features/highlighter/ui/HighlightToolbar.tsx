@@ -178,74 +178,138 @@ export class HighlightToolbarElement extends ReactCustomElement {
       @keyframes effikit-toolbar-fadein {
         from {
           opacity: 0;
-          transform: translateY(-8px);
+          transform: translateY(-4px) scale(0.95);
         }
         to {
           opacity: 1;
-          transform: translateY(0);
+          transform: translateY(0) scale(1);
         }
       }
       
       .effikit-highlight-toolbar {
-        background-color: white;
-        border: 1px solid #e1e5e9;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        padding: 8px;
+        background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 10px;
+        box-shadow: 
+          0 2px 8px rgba(0, 0, 0, 0.06),
+          0 4px 24px rgba(0, 0, 0, 0.08),
+          0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+        padding: 4px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         font-size: 14px;
-        animation: effikit-toolbar-fadein 0.2s ease-out;
+        animation: effikit-toolbar-fadein 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        backdrop-filter: blur(12px);
       }
       
       .toolbar-actions {
         display: flex;
-        gap: 8px;
+        gap: 4px;
+        align-items: center;
         justify-content: center;
       }
       
       .toolbar-actions button {
-        padding: 8px;
-        border: 1px solid #d1d5db;
-        border-radius: 4px;
-        background: white;
+        padding: 6px 8px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.95);
         cursor: pointer;
         font-size: 12px;
-        transition: all 0.2s ease;
+        font-weight: 500;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         align-items: center;
         justify-content: center;
         min-width: 32px;
         min-height: 32px;
+        color: #374151;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+      
+      .toolbar-actions button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 100%);
+        opacity: 0;
+        transition: opacity 0.2s ease;
       }
       
       .toolbar-actions button:hover:not(:disabled) {
-        background: #f9fafb;
-        border-color: #9ca3af;
+        background: rgba(255, 255, 255, 0.95);
+        transform: translateY(-1px);
+        box-shadow: 
+          0 4px 12px rgba(0, 0, 0, 0.08),
+          0 2px 4px rgba(0, 0, 0, 0.04);
+      }
+      
+      .toolbar-actions button:hover:not(:disabled)::before {
+        opacity: 1;
+      }
+      
+      .toolbar-actions button:active:not(:disabled) {
+        transform: translateY(0);
+        box-shadow: 
+          0 2px 6px rgba(0, 0, 0, 0.06),
+          0 1px 2px rgba(0, 0, 0, 0.04);
       }
       
       .toolbar-actions button:disabled {
-        opacity: 0.5;
+        opacity: 0.4;
         cursor: not-allowed;
+        transform: none;
       }
       
       .highlight-btn {
-        color: #059669;
-        border-color: #059669;
+        color: #10b981;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%);
+        border-color: rgba(16, 185, 129, 0.2);
+        box-shadow: 
+          0 1px 2px rgba(16, 185, 129, 0.1),
+          0 0 0 1px rgba(16, 185, 129, 0.05) inset;
       }
       
       .highlight-btn:hover:not(:disabled) {
-        background: #ecfdf5;
-        border-color: #059669;
+        color: #059669;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.12) 100%);
+        border-color: rgba(16, 185, 129, 0.3);
+        box-shadow: 
+          0 4px 12px rgba(16, 185, 129, 0.15),
+          0 2px 4px rgba(16, 185, 129, 0.08),
+          0 0 0 1px rgba(16, 185, 129, 0.1) inset;
       }
       
       .remove-highlight-btn {
-        color: #dc2626;
-        border-color: #dc2626;
+        color: #ef4444;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.08) 100%);
+        border-color: rgba(239, 68, 68, 0.2);
+        box-shadow: 
+          0 1px 2px rgba(239, 68, 68, 0.1),
+          0 0 0 1px rgba(239, 68, 68, 0.05) inset;
       }
       
       .remove-highlight-btn:hover:not(:disabled) {
-        background: #fef2f2;
-        border-color: #dc2626;
+        color: #dc2626;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.12) 100%);
+        border-color: rgba(239, 68, 68, 0.3);
+        box-shadow: 
+          0 4px 12px rgba(239, 68, 68, 0.15),
+          0 2px 4px rgba(239, 68, 68, 0.08),
+          0 0 0 1px rgba(239, 68, 68, 0.1) inset;
+      }
+      
+      /* 添加图标样式优化 */
+      .toolbar-actions button svg {
+        transition: transform 0.2s ease;
+      }
+      
+      .toolbar-actions button:hover:not(:disabled) svg {
+        transform: scale(1.1);
       }
     `);
     return sheet;

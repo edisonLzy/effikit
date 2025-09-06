@@ -1,7 +1,7 @@
 // 导入 Custom Elements polyfill 以支持 isolated world
 import '@webcomponents/custom-elements';
 import { createLogger } from '../../lib/logger';
-import { applyHighlight, createTextRangeFromSelection, restoreHighlights, registerHighlightElements, removeHighlightFromSelection, showGlobalToolbar, showGlobalToolbarWithId, hideGlobalToolbar } from './dom';
+import { applyHighlight, createTextRangeFromSelection, restoreHighlights, registerHighlightElements, removeHighlight, getHighlightIdFromSelection, showGlobalToolbar, showGlobalToolbarWithId, hideGlobalToolbar } from './dom';
 import { saveHighlight, getHighlights, getHighlightSettings, deleteHighlightFromStorage, updateHighlightFromStore } from './storage';
 import { generateHighlightId, normalizeUrl } from './utils';
 import type { Highlight } from './types';
@@ -143,7 +143,7 @@ async function handleHighlightElementClick(event: CustomEvent) {
     
     // 创建一个选择范围覆盖点击的高亮元素
     const range = document.createRange();
-    range.selectNode(element);  // 选择整个元素，而不仅仅是内容
+    range.selectNode(element); // 选择整个元素，而不仅仅是内容
     
     const selection = window.getSelection();
     if (selection) {
@@ -221,14 +221,30 @@ async function handleHighlightRemove() {
       return;
     }
     
-    // 移除DOM中的高亮
-    const removed = removeHighlightFromSelection(selection);
-    if (removed && removed.length > 0) {
+    // 首先从选择范围中获取高亮ID
+    const highlightId = getHighlightIdFromSelection(selection);
+    if (!highlightId) {
+      logger.warn('No highlight ID found in current selection');
+      return;
+    }
+    
+    // 从存储中获取高亮数据（用于日志记录）
+    const currentUrl = normalizeUrl(window.location.href);
+    const highlights = await getHighlights(currentUrl);
+    const targetHighlight = highlights.find(h => h.id === highlightId);
+    
+    // 移除DOM中所有具有相同ID的高亮元素
+    const success = removeHighlight(highlightId);
+    if (success) {
       // 删除存储中的高亮数据
-      for (const highlight of removed) {
-        await deleteHighlightFromStorage(highlight.id);
-        logger.info('Highlight removed successfully:', highlight.id);
+      await deleteHighlightFromStorage(highlightId);
+      logger.info('All highlight elements removed successfully:', highlightId);
+      
+      if (targetHighlight) {
+        logger.info('Removed highlight text:', targetHighlight.text);
       }
+    } else {
+      logger.warn('Failed to remove highlight elements from DOM');
     }
     
     // 清除选择并隐藏工具栏

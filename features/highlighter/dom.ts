@@ -197,33 +197,43 @@ export function applyHighlight(selection: Selection, highlight: Highlight): bool
 }
 
 /**
- * 移除高亮（通过ID）
+ * 移除高亮（通过ID）- 移除所有具有相同ID的高亮元素
  */
 export function removeHighlight(highlightId: string): boolean {
   try {
-    const highlightElement = document.querySelector(`effikit-highlight[data-highlight-id="${highlightId}"]`);
-    if (!highlightElement) {
+    const highlightElements = document.querySelectorAll(`effikit-highlight[data-highlight-id="${highlightId}"]`);
+    if (highlightElements.length === 0) {
       return false;
     }
 
-    // 获取高亮元素的内容
-    const parent = highlightElement.parentNode;
-    if (!parent) {
-      return false;
-    }
+    let removedCount = 0;
+    
+    highlightElements.forEach(highlightElement => {
+      try {
+        // 获取高亮元素的父节点
+        const parent = highlightElement.parentNode;
+        if (!parent) {
+          return;
+        }
 
-    // 将高亮元素的子节点移动到父节点
-    while (highlightElement.firstChild) {
-      parent.insertBefore(highlightElement.firstChild, highlightElement);
-    }
+        // 将高亮元素的子节点移动到父节点
+        while (highlightElement.firstChild) {
+          parent.insertBefore(highlightElement.firstChild, highlightElement);
+        }
 
-    // 移除高亮元素
-    parent.removeChild(highlightElement as ChildNode);
+        // 移除高亮元素
+        parent.removeChild(highlightElement as ChildNode);
+        
+        // 合并相邻的文本节点
+        parent.normalize();
+        
+        removedCount++;
+      } catch (error) {
+        console.error('Failed to remove individual highlight element:', error);
+      }
+    });
 
-    // 合并相邻的文本节点
-    parent.normalize();
-
-    return true;
+    return removedCount > 0;
   } catch (error) {
     console.error('Failed to remove highlight:', error);
     return false;
