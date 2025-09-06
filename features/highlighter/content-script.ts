@@ -51,6 +51,9 @@ function setupCustomEventListeners() {
   document.addEventListener('effikit-highlight-remove', handleHighlightRemove as unknown as EventListener);
   document.addEventListener('effikit-highlight-color-change', handleHighlightColorChange as unknown as EventListener);
   
+  // 监听高亮元素点击事件
+  document.addEventListener('effikit:highlight:click', handleHighlightElementClick as unknown as EventListener);
+  
   logger.debug('Custom event listeners set up');
 }
 
@@ -123,6 +126,37 @@ async function handleTextSelection() {
     }, 100);
   } catch (error) {
     logger.error('Failed to handle text selection:', error);
+  }
+}
+
+/**
+ * 处理高亮元素点击事件
+ */
+async function handleHighlightElementClick(event: CustomEvent) {
+  try {
+    const { id: highlightId, element } = event.detail;
+    
+    if (!highlightId || !element) {
+      logger.warn('Invalid highlight click event data');
+      return;
+    }
+    
+    // 创建一个选择范围覆盖点击的高亮元素
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    
+    const selection = window.getSelection();
+    if (selection) {
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      // 显示工具栏，传入高亮ID以显示移除按钮
+      showGlobalToolbar(selection);
+    }
+    
+    logger.debug('Highlight element clicked:', highlightId);
+  } catch (error) {
+    logger.error('Failed to handle highlight element click:', error);
   }
 }
 

@@ -1,5 +1,6 @@
 import React, { useLayoutEffect } from 'react';
 import { useFloating, autoUpdate, offset, flip, shift, useDismiss, useInteractions } from '@floating-ui/react';
+import { Highlighter, Trash2 } from 'lucide-react';
 import { ReactCustomElement } from './ReactCustomElement';
 import type { VirtualElement } from '@floating-ui/react';
 import { createLogger } from '@/lib/logger';
@@ -8,11 +9,13 @@ const logger = createLogger('HighlightToolbar');
 
 export interface ShowToolbarOptions {
   selection: Selection;
+  highlightId?: string;
 }
 
 export interface HighlightToolbarElementAttributes {
   open: boolean;
   stringifiedRect: string;
+  highlightId?: string;
 }
 
 interface HighlightToolbarProps {
@@ -21,21 +24,38 @@ interface HighlightToolbarProps {
 
 // Tags area removed for simplified implementation
 
-function ToolbarActions() {
+function ToolbarActions({ highlightId }: { highlightId?: string }) {
   const handleHighlight = () => {
     const customEvent = new CustomEvent('effikit-highlight-create');
     document.dispatchEvent(customEvent);
   };
 
+  const handleRemoveHighlight = () => {
+    const customEvent = new CustomEvent('effikit-highlight-remove');
+    document.dispatchEvent(customEvent);
+  };
+
   return (
     <div className="toolbar-actions">
-      <button
-        className="highlight-btn"
-        data-action="highlight"
-        onClick={handleHighlight}
-      >
-        高亮
-      </button>
+      {highlightId ? (
+        <button
+          className="remove-highlight-btn"
+          data-action="remove-highlight"
+          onClick={handleRemoveHighlight}
+          title="取消高亮"
+        >
+          <Trash2 size={14} />
+        </button>
+      ) : (
+        <button
+          className="highlight-btn"
+          data-action="highlight"
+          onClick={handleHighlight}
+          title="高亮文本"
+        >
+          <Highlighter size={14} />
+        </button>
+      )}
     </div>
   );
 }
@@ -43,7 +63,7 @@ function ToolbarActions() {
 function HighlightToolbar(props: HighlightToolbarProps) {
   const { attributes } = props;
 
-  const { open, stringifiedRect } = attributes;
+  const { open, stringifiedRect, highlightId } = attributes;
 
   const { refs, floatingStyles, context } = useFloating({
     placement: 'top-start',
@@ -74,17 +94,22 @@ function HighlightToolbar(props: HighlightToolbarProps) {
     try {
       const parsedRect:DOMRect = JSON.parse(stringifiedRect);
       const { left, top, right, bottom } = parsedRect;
+      
+      // Fix: Add scroll offset to position toolbar correctly after page scrolling
+      const scrollX = window.scrollX || window.pageXOffset || 0;
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      
       const virtualElement: VirtualElement = {
         getBoundingClientRect() {
           return {
-            left,
-            top,
-            right,
-            bottom,
+            left: left + scrollX,
+            top: top + scrollY,
+            right: right + scrollX,
+            bottom: bottom + scrollY,
             height: bottom - top,
             width: 0,
-            x: left,
-            y: bottom - top
+            x: left + scrollX,
+            y: bottom - top + scrollY
           };
         }
       };
@@ -106,7 +131,7 @@ function HighlightToolbar(props: HighlightToolbarProps) {
     style={floatingStyles}
     {...getFloatingProps()}
   >
-    <ToolbarActions />
+    <ToolbarActions highlightId={highlightId} />
   </div>;
 }
 
@@ -118,7 +143,7 @@ export class HighlightToolbarElement extends ReactCustomElement {
   static tagName = 'effikit-highlight-toolbar';
 
   static get observedAttributes() {
-    return ['open', 'stringifiedRect'];
+    return ['open', 'stringifiedRect', 'highlightId'];
   }
 
   static getInstance() {
@@ -132,11 +157,13 @@ export class HighlightToolbarElement extends ReactCustomElement {
   protected createReactComponent(): React.ReactElement {
     const open = this.getAttribute('open') === 'true';
     const stringifiedRect = this.getAttribute('stringifiedRect') || '';
+    const highlightId = this.getAttribute('highlightId') || undefined;
 
     return React.createElement(HighlightToolbar, {
       attributes: {
         open,
-        stringifiedRect
+        stringifiedRect,
+        highlightId
       }
     });
   }
@@ -179,13 +206,18 @@ export class HighlightToolbarElement extends ReactCustomElement {
       }
       
       .toolbar-actions button {
-        padding: 6px 12px;
+        padding: 8px;
         border: 1px solid #d1d5db;
         border-radius: 4px;
         background: white;
         cursor: pointer;
         font-size: 12px;
         transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        min-height: 32px;
       }
       
       .toolbar-actions button:hover:not(:disabled) {
@@ -207,13 +239,23 @@ export class HighlightToolbarElement extends ReactCustomElement {
         background: #ecfdf5;
         border-color: #059669;
       }
+      
+      .remove-highlight-btn {
+        color: #dc2626;
+        border-color: #dc2626;
+      }
+      
+      .remove-highlight-btn:hover:not(:disabled) {
+        background: #fef2f2;
+        border-color: #dc2626;
+      }
     `);
     return sheet;
   }
 
   // 公共方法
   showToolbar(options: ShowToolbarOptions) {
-    const { selection } = options;
+    const { selection, highlightId } = options;
 
     if (selection.rangeCount === 0) {
       return;
@@ -225,7 +267,8 @@ export class HighlightToolbarElement extends ReactCustomElement {
 
     this.updateToolbar({
       open: true,
-      stringifiedRect: JSON.stringify(firstRect.toJSON())
+      stringifiedRect: JSON.stringify(firstRect.toJSON()),
+      highlightId
     });
   }
 
@@ -241,6 +284,9 @@ export class HighlightToolbarElement extends ReactCustomElement {
     }
     if (attributes.stringifiedRect !== undefined) {
       this.setAttribute('stringifiedRect', attributes.stringifiedRect.toString());
+    }
+    if (attributes.highlightId !== undefined) {
+      this.setAttribute('highlightId', attributes.highlightId.toString());
     }
   }
 
