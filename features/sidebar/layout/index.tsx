@@ -12,7 +12,7 @@ export function Layout() {
       </header>
 
       {/* Main - 滚动区域，占据剩余空间 */}
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-auto">
         <Outlet />
       </main>
     </div>
