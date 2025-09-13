@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, AuthError } from '@supabase/supabase-js';
+import type { User, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/config/supabase';
 
 interface AuthContextType {
@@ -7,6 +7,9 @@ interface AuthContextType {
   isLoading: boolean;
   error: AuthError | null;
   signOut: () => Promise<void>;
+  signInWithGitHub: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +23,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 获取初始会话状态
     const getInitialSession = async () => {
       try {
+        // 首先尝试从 Chrome 存储中获取会话
+        const result = await chrome.storage.local.get(['effikit_auth']);
+        const authData = result.effikit_auth;
+        
+        if (authData && authData.access_token && authData.refresh_token) {
+          // 设置 Supabase 会话
+          const { data, error } = await supabase.auth.setSession({
+            access_token: authData.access_token,
+            refresh_token: authData.refresh_token,
+          });
+          
+          if (!error && data.user) {
+            setUser(data.user);
+            setIsLoading(false);
+            return;
+          }
+          
+          // 如果会话过期，清除存储的认证数据
+          if (error) {
+            await chrome.storage.local.remove(['effikit_auth']);
+          }
+        }
+        
+        // 如果没有存储的会话或会话无效，尝试获取当前会话
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           setError(error);
@@ -41,6 +68,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         setError(null);
         setIsLoading(false);
+
+        // 保存或清除会话到 Chrome 存储
+        if (session?.access_token && session?.refresh_token) {
+          await chrome.storage.local.set({
+            'effikit_auth': {
+              access_token: session.access_token,
+              refresh_token: session.refresh_token,
+              user: session.user
+            }
+          });
+        } else {
+          await chrome.storage.local.remove(['effikit_auth']);
+        }
 
         // 可以在这里处理不同的认证事件
         switch (event) {
@@ -69,6 +109,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setError(error);
         throw error;
       }
+      
+      // 清除 Chrome 存储中的认证数据
+      await chrome.storage.local.remove(['effikit_auth']);
+    } catch (err) {
+      setError(err as AuthError);
+      throw err;
+    }
+  };
+
+  const signInWithGitHub = async () => {
+    try {
+      setError(null);
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: chrome.identity.getRedirectURL(),
+        },
+      });
+      
+      if (error) {
+        setError(error);
+        throw error;
+      }
+      
+      // 在新标签页中打开认证URL
+      if (data.url) {
+        await chrome.tabs.create({ url: data.url });
+      }
+    } catch (err) {
+      setError(err as AuthError);
+      throw err;
+    }
+  };
+
+  const signInWithEmail = async (email: string, password: string) => {
+    try {
+      setError(null);
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        setError(error);
+        throw error;
+      }
+    } catch (err) {
+      setError(err as AuthError);
+      throw err;
+    }
+  };
+
+  const signUpWithEmail = async (email: string, password: string) => {
+    try {
+      setError(null);
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (error) {
+        setError(error);
+        throw error;
+      }
     } catch (err) {
       setError(err as AuthError);
       throw err;
@@ -80,6 +184,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     error,
     signOut,
+    signInWithGitHub,
+    signInWithEmail,
+    signUpWithEmail,
   };
 
   return (

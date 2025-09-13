@@ -1,11 +1,37 @@
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/config/supabase';
-import { normalizeUrl } from '@/utils';
 import type { Highlight, HighlightStorage, HighlightSettings } from '@/types';
 import type { IHighlightStorage } from '@/types/storage';
+import { supabase } from '@/config/supabase';
+import { normalizeUrl } from '@/utils';
 
 export class SupabaseStorageAdapter implements IHighlightStorage {
   private async getCurrentUser() {
+    // 先尝试从 Chrome 存储中获取用户会话
+    try {
+      const result = await chrome.storage.local.get(['effikit_auth']);
+      const authData = result.effikit_auth;
+      
+      if (authData && authData.access_token && authData.refresh_token) {
+        // 设置 Supabase 会话
+        const { data, error } = await supabase.auth.setSession({
+          access_token: authData.access_token,
+          refresh_token: authData.refresh_token,
+        });
+        
+        if (!error && data.user) {
+          return data.user;
+        }
+        
+        // 如果会话过期，清除存储的认证数据
+        if (error) {
+          await chrome.storage.local.remove(['effikit_auth']);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to get auth data from Chrome storage:', error);
+    }
+    
+    // 如果从存储中无法获取会话，尝试从 Supabase 获取当前用户
     const { data: { user }, error } = await supabase.auth.getUser();
     
     if (error) {

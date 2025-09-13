@@ -21,7 +21,8 @@
     "activeTab",
     "tabs",
     "storage",
-    "contextMenus"
+    "contextMenus",
+    "identity"
   ],
   "background": {
     "service_worker": "src/background.ts"

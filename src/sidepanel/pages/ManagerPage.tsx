@@ -1,11 +1,11 @@
 import React from 'react';
-import { Highlighter, ExternalLink, Trash2, Copy } from 'lucide-react';
+import { Highlighter, ExternalLink, Trash2, Copy, RefreshCw } from 'lucide-react';
+import type { Highlight } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getHighlightColorName } from '@/utils';
 import { useHighlights } from '@/hooks/useHighlights';
-import type { Highlight } from '@/types';
 
 export function ManagerPage() {
   const { 
@@ -15,7 +15,8 @@ export function ManagerPage() {
     removeHighlight, 
     clearHighlights,
     copyHighlight,
-    openUrl 
+    openUrl,
+    refreshHighlights
   } = useHighlights();
 
   if (isLoading) {
@@ -52,9 +53,18 @@ export function ManagerPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">高亮管理</h2>
+    <div className="space-y-4 p-4">
+      <div className="flex items-center justify-end gap-2">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={refreshHighlights}
+          disabled={isLoading}
+          className="h-8"
+        >
+          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+        </Button>
+
         <Badge variant="secondary">
           {totalHighlights} 个高亮
         </Badge>
