@@ -3,10 +3,11 @@
 // 导入 Custom Elements polyfill 以支持 isolated world
 import '@webcomponents/custom-elements';
 import { createLogger } from './utils/logger';
-import { applyHighlight, createTextRangeFromSelection, restoreHighlights, registerHighlightElements, removeHighlight, getHighlightIdFromSelection, showGlobalToolbar, showGlobalToolbarWithId, hideGlobalToolbar } from './highlighter/dom';
+import { applyHighlight, createTextRangeFromSelection, restoreHighlights, registerHighlightElements, removeHighlight, getHighlightIdFromSelection, showGlobalToolbar, hideGlobalToolbar } from './highlighter/dom';
+import { HighlightTagPanelElement } from './highlighter/ui/HighlightTagPanel';
 import { saveHighlight, getHighlights, getHighlightSettings, deleteHighlightFromStorage, updateHighlightFromStore } from './storage';
 import { generateHighlightId, normalizeUrl } from './utils';
-import type { Highlight } from '@/types';
+import type { Highlight, HighlightTag, AnnotationTagContent } from '@/types';
 
 const logger = createLogger('highlighter');
 
@@ -139,10 +140,16 @@ function setupCustomEventListeners() {
   document.addEventListener('effikit-highlight-create', handleHighlightCreate as unknown as EventListener);
   document.addEventListener('effikit-highlight-remove', handleHighlightRemove as unknown as EventListener);
   document.addEventListener('effikit-highlight-color-change', handleHighlightColorChange as unknown as EventListener);
-  
+
   // 监听高亮元素点击事件
   document.addEventListener('effikit:highlight:click', handleHighlightElementClick as unknown as EventListener);
-  
+
+  // 监听标签操作事件
+  document.addEventListener('effikit:tag:add', handleTagAdd as unknown as EventListener);
+  document.addEventListener('effikit:tag:delete', handleTagDelete as unknown as EventListener);
+  document.addEventListener('effikit:tag:edit', handleTagEdit as unknown as EventListener);
+  document.addEventListener('effikit:tag-panel:close', handleTagPanelClose as unknown as EventListener);
+
   logger.debug('Custom event listeners set up');
 }
 
@@ -224,28 +231,55 @@ async function handleTextSelection() {
 async function handleHighlightElementClick(event: CustomEvent) {
   try {
     const { id: highlightId, element } = event.detail;
-    
+
     if (!highlightId || !element) {
       logger.warn('Invalid highlight click event data');
       return;
     }
-    
-    // 创建一个选择范围覆盖点击的高亮元素
-    const range = document.createRange();
-    range.selectNode(element); // 选择整个元素，而不仅仅是内容
-    
-    const selection = window.getSelection();
-    if (selection) {
-      selection.removeAllRanges();
-      selection.addRange(range);
-      
-      // 直接传递高亮ID给工具栏显示函数
-      showGlobalToolbarWithId(selection, highlightId);
-    }
-    
+
+    // 隐藏工具栏（如果显示的话）
+    hideGlobalToolbar();
+
+    // 显示标签面板
+    await showHighlightTagPanel(highlightId, element);
+
     logger.debug('Highlight element clicked:', highlightId);
   } catch (error) {
     logger.error('Failed to handle highlight element click:', error);
+  }
+}
+
+/**
+ * 显示高亮标签面板
+ */
+async function showHighlightTagPanel(highlightId: string, element: HTMLElement) {
+  try {
+    // 获取高亮数据
+    const currentUrl = normalizeUrl(window.location.href);
+    const highlights = await getHighlights(currentUrl);
+    const highlight = highlights.find(h => h.id === highlightId);
+
+    if (!highlight) {
+      logger.warn('Highlight not found:', highlightId);
+      return;
+    }
+
+    // 获取元素位置
+    const rect = element.getBoundingClientRect();
+
+    // 获取标签面板实例
+    const tagPanel = HighlightTagPanelElement.getInstance();
+
+    // 显示面板
+    tagPanel.showPanel({
+      highlightId,
+      tags: highlight.tags || [],
+      position: rect,
+    });
+
+    logger.debug('Tag panel shown for highlight:', highlightId);
+  } catch (error) {
+    logger.error('Failed to show tag panel:', error);
   }
 }
 
@@ -374,6 +408,190 @@ async function handleHighlightColorChange(event: CustomEvent) {
     logger.info('Highlight color changed to:', color);
   } catch (error) {
     logger.error('Failed to change highlight color:', error);
+  }
+}
+
+/**
+ * 处理添加标签事件
+ */
+async function handleTagAdd(event: CustomEvent) {
+  try {
+    const { highlightId, type } = event.detail;
+
+    if (!highlightId || !type) {
+      logger.warn('Invalid tag add event data');
+      return;
+    }
+
+    // 获取高亮数据
+    const currentUrl = normalizeUrl(window.location.href);
+    const highlights = await getHighlights(currentUrl);
+    const highlight = highlights.find(h => h.id === highlightId);
+
+    if (!highlight) {
+      logger.warn('Highlight not found for tag add:', highlightId);
+      return;
+    }
+
+    // 检查是否已存在该类型的标签
+    const existingTag = highlight.tags?.find(tag => tag.type === type);
+    if (existingTag) {
+      logger.warn('Tag of this type already exists:', type);
+      return;
+    }
+
+    // 创建新标签
+    const newTag: HighlightTag = {
+      id: generateHighlightId(), // 生成唯一标签ID
+      type,
+      title: type === 'annotation' ? '注释' : '词汇',
+      content: type === 'annotation'
+        ? { note: '', createdAt: Date.now(), updatedAt: Date.now() } as AnnotationTagContent
+        : { note: '', createdAt: Date.now(), updatedAt: Date.now() } as AnnotationTagContent, // 暂时都使用 annotation 类型
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    // 更新高亮数据
+    const updatedTags = [...(highlight.tags || []), newTag];
+
+    // 保存到存储
+    await updateHighlightFromStore(highlightId, {
+      tags: updatedTags,
+      lastModified: Date.now(),
+    });
+
+    // 更新标签面板显示
+    const tagPanel = HighlightTagPanelElement.getInstance();
+    const element = document.querySelector(`[data-highlight-id="${highlightId}"]`) as HTMLElement;
+    if (element) {
+      const rect = element.getBoundingClientRect();
+      tagPanel.showPanel({
+        highlightId,
+        tags: updatedTags,
+        position: rect,
+      });
+    }
+
+    logger.debug('Tag added:', newTag);
+  } catch (error) {
+    logger.error('Failed to add tag:', error);
+  }
+}
+
+/**
+ * 处理删除标签事件
+ */
+async function handleTagDelete(event: CustomEvent) {
+  try {
+    const { highlightId, tagId } = event.detail;
+
+    if (!highlightId || !tagId) {
+      logger.warn('Invalid tag delete event data');
+      return;
+    }
+
+    // 获取高亮数据
+    const currentUrl = normalizeUrl(window.location.href);
+    const highlights = await getHighlights(currentUrl);
+    const highlight = highlights.find(h => h.id === highlightId);
+
+    if (!highlight) {
+      logger.warn('Highlight not found for tag delete:', highlightId);
+      return;
+    }
+
+    // 删除标签
+    const updatedTags = highlight.tags?.filter(tag => tag.id !== tagId) || [];
+
+    // 保存到存储
+    await updateHighlightFromStore(highlightId, {
+      tags: updatedTags,
+      lastModified: Date.now(),
+    });
+
+    // 更新标签面板显示
+    const tagPanel = HighlightTagPanelElement.getInstance();
+    const element = document.querySelector(`[data-highlight-id="${highlightId}"]`) as HTMLElement;
+    if (element) {
+      const rect = element.getBoundingClientRect();
+      tagPanel.showPanel({
+        highlightId,
+        tags: updatedTags,
+        position: rect,
+      });
+    }
+
+    logger.debug('Tag deleted:', tagId);
+  } catch (error) {
+    logger.error('Failed to delete tag:', error);
+  }
+}
+
+/**
+ * 处理编辑标签事件
+ */
+async function handleTagEdit(event: CustomEvent) {
+  try {
+    const { highlightId, tagId, content } = event.detail;
+
+    if (!highlightId || !tagId || !content) {
+      logger.warn('Invalid tag edit event data');
+      return;
+    }
+
+    // 获取高亮数据
+    const currentUrl = normalizeUrl(window.location.href);
+    const highlights = await getHighlights(currentUrl);
+    const highlight = highlights.find(h => h.id === highlightId);
+
+    if (!highlight) {
+      logger.warn('Highlight not found for tag edit:', highlightId);
+      return;
+    }
+
+    // 更新标签内容
+    const updatedTags = highlight.tags?.map(tag =>
+      tag.id === tagId
+        ? { ...tag, content, updatedAt: Date.now() }
+        : tag
+    ) || [];
+
+    // 保存到存储
+    await updateHighlightFromStore(highlightId, {
+      tags: updatedTags,
+      lastModified: Date.now(),
+    });
+
+    // 更新标签面板显示
+    const tagPanel = HighlightTagPanelElement.getInstance();
+    const element = document.querySelector(`[data-highlight-id="${highlightId}"]`) as HTMLElement;
+    if (element) {
+      const rect = element.getBoundingClientRect();
+      tagPanel.showPanel({
+        highlightId,
+        tags: updatedTags,
+        position: rect,
+      });
+    }
+
+    logger.debug('Tag edited:', tagId);
+  } catch (error) {
+    logger.error('Failed to edit tag:', error);
+  }
+}
+
+/**
+ * 处理标签面板关闭事件
+ */
+function handleTagPanelClose(event: CustomEvent) {
+  try {
+    const tagPanel = HighlightTagPanelElement.getInstance();
+    tagPanel.hidePanel();
+
+    logger.debug('Tag panel closed');
+  } catch (error) {
+    logger.error('Failed to close tag panel:', error);
   }
 }
 
