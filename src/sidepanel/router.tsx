@@ -1,9 +1,10 @@
 import { createMemoryRouter } from 'react-router';
 import { Layout } from './Layout';
-import { HighlightsManager } from './pages/HighlightsManager';
+import { ManagerPage } from './pages/ManagerPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { NotFoundPage } from './NotFoundPage';
 import { ErrorBoundary } from './ErrorBoundary';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import type { RouteObject } from 'react-router';
 
 export const router = createMemoryRouter([
@@ -14,7 +15,11 @@ export const router = createMemoryRouter([
     children: [
       {
         index: true,
-        element: <HighlightsManager />
+        element: (
+          <ProtectedRoute>
+            <ManagerPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'unauthorized',

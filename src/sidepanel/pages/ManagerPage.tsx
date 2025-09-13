@@ -7,7 +7,7 @@ import { getHighlightColorName } from '@/utils';
 import { useHighlights } from '@/hooks/useHighlights';
 import type { Highlight } from '@/types';
 
-export function HighlightsManager() {
+export function ManagerPage() {
   const { 
     highlightsByUrl, 
     isLoading, 

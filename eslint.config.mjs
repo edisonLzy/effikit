@@ -61,7 +61,7 @@ export default [
   },
   {
     plugins: {
-      // 'unused-imports': unusedImports,
+      'unused-imports': unusedImports,
     },
     rules: {
       'no-unused-vars': 'off', // or "@typescript-eslint/no-unused-vars": "off",

@@ -5,76 +5,35 @@ import type { Highlight, HighlightStorage, HighlightSettings } from '@/types';
 import type { IHighlightStorage } from '@/types/storage';
 
 export class SupabaseStorageAdapter implements IHighlightStorage {
-  private async getOrCreateGuestUser() {
-    // Try to get existing user
-    const { data: { user } } = await supabase.auth.getUser();
+  private async getCurrentUser() {
+    const { data: { user }, error } = await supabase.auth.getUser();
     
-    if (user) {
-      return user;
-    }
-
-    // Generate a unique guest identifier based on browser/device
-    const guestId = this.generateGuestId();
-    
-    try {
-      // Try to sign up as a guest user with a generated email
-      const { data, error } = await supabase.auth.signInAnonymously({
-        email: `guest-${guestId}@extension.local`,
-        password: guestId + Date.now().toString(), // Simple password generation
-      });
-
-      if (error) {
-        console.error('Failed to create guest user:', error);
-        // If signup fails, we'll continue without authentication
-        // and rely on RLS policies or public access
-        return null;
-      }
-
-      return data.user;
-    } catch (error) {
-      console.error('Authentication error:', error);
-      return null;
-    }
-  }
-
-  private generateGuestId(): string {
-    // Generate a stable guest ID based on browser characteristics
-    const browserData = [
-      navigator.userAgent,
-      screen.width + 'x' + screen.height,
-      Intl.DateTimeFormat().resolvedOptions().timeZone,
-    ].join('|');
-    
-    // Simple hash function to create consistent ID
-    let hash = 0;
-    for (let i = 0; i < browserData.length; i++) {
-      const char = browserData.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
+    if (error) {
+      console.error('Failed to get current user:', error);
+      throw new Error('Authentication required');
     }
     
-    return Math.abs(hash).toString(36);
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+    
+    return user;
   }
 
   async saveHighlight(highlight: Highlight): Promise<void> {
     try {
-      // 尝试获取或创建访客用户
-      const user = await this.getOrCreateGuestUser();
+      const user = await this.getCurrentUser();
       
-      const insertData: any = {
+      const insertData = {
         id: highlight.id,
         text: highlight.text,
         url: normalizeUrl(highlight.url),
         color: highlight.color,
         range: highlight.range as any, // Cast to any to handle Json type compatibility
         timestamp: highlight.timestamp,
-        last_modified: highlight.lastModified
+        last_modified: highlight.lastModified,
+        user_id: user.id
       };
-
-      // Only add user_id if we have a user
-      if (user) {
-        insertData.user_id = user.id;
-      }
 
       const { error } = await supabase
         .from('highlights')
@@ -97,8 +56,7 @@ export class SupabaseStorageAdapter implements IHighlightStorage {
 
   async getHighlights(url?: string): Promise<Highlight[]> {
     try {
-      // 尝试获取或创建访客用户
-      const user = await this.getOrCreateGuestUser();
+      const user = await this.getCurrentUser();
       
       let query = supabase
         .from('highlights')
@@ -113,12 +71,8 @@ export class SupabaseStorageAdapter implements IHighlightStorage {
             created_at,
             updated_at
           )
-        `);
-
-      // Only filter by user_id if we have a user
-      if (user) {
-        query = query.eq('user_id', user.id); // 只获取当前用户的高亮
-      }
+        `)
+        .eq('user_id', user.id); // 只获取当前用户的高亮
 
       if (url) {
         query = query.eq('url', normalizeUrl(url));
@@ -159,8 +113,7 @@ export class SupabaseStorageAdapter implements IHighlightStorage {
 
   async removeHighlight(highlightId: string, url: string): Promise<void> {
     try {
-      // 尝试获取或创建访客用户
-      const user = await this.getOrCreateGuestUser();
+      const user = await this.getCurrentUser();
       
       // 先删除相关的标签
       await supabase
@@ -169,18 +122,12 @@ export class SupabaseStorageAdapter implements IHighlightStorage {
         .eq('highlight_id', highlightId);
 
       // 然后删除高亮
-      let deleteQuery = supabase
+      const { error } = await supabase
         .from('highlights')
         .delete()
         .eq('id', highlightId)
-        .eq('url', normalizeUrl(url));
-
-      // Only filter by user_id if we have a user
-      if (user) {
-        deleteQuery = deleteQuery.eq('user_id', user.id); // 只删除当前用户的高亮
-      }
-
-      const { error } = await deleteQuery;
+        .eq('url', normalizeUrl(url))
+        .eq('user_id', user.id); // 只删除当前用户的高亮
 
       if (error) {
         console.error('Failed to remove highlight from Supabase:', error);
@@ -194,8 +141,7 @@ export class SupabaseStorageAdapter implements IHighlightStorage {
 
   async updateHighlight(highlightId: string, payload: Partial<Omit<Highlight, 'id'>>): Promise<boolean> {
     try {
-      // 尝试获取或创建访客用户
-      const user = await this.getOrCreateGuestUser();
+      const user = await this.getCurrentUser();
       
       const updateData: any = {};
 
@@ -204,17 +150,11 @@ export class SupabaseStorageAdapter implements IHighlightStorage {
       if (payload.range) updateData.range = payload.range;
       if (payload.lastModified) updateData.last_modified = payload.lastModified;
 
-      let updateQuery = supabase
+      const { error } = await supabase
         .from('highlights')
         .update(updateData)
-        .eq('id', highlightId);
-
-      // Only filter by user_id if we have a user
-      if (user) {
-        updateQuery = updateQuery.eq('user_id', user.id); // 只更新当前用户的高亮
-      }
-
-      const { error } = await updateQuery;
+        .eq('id', highlightId)
+        .eq('user_id', user.id); // 只更新当前用户的高亮
 
       if (error) {
         console.error('Failed to update highlight in Supabase:', error);
@@ -242,8 +182,7 @@ export class SupabaseStorageAdapter implements IHighlightStorage {
 
   async deleteHighlight(highlightId: string): Promise<void> {
     try {
-      // 尝试获取或创建访客用户
-      const user = await this.getOrCreateGuestUser();
+      const user = await this.getCurrentUser();
       
       // 先删除相关的标签
       await supabase
@@ -252,17 +191,11 @@ export class SupabaseStorageAdapter implements IHighlightStorage {
         .eq('highlight_id', highlightId);
 
       // 然后删除高亮
-      let deleteQuery = supabase
+      const { error } = await supabase
         .from('highlights')
         .delete()
-        .eq('id', highlightId);
-
-      // Only filter by user_id if we have a user
-      if (user) {
-        deleteQuery = deleteQuery.eq('user_id', user.id); // 只删除当前用户的高亮
-      }
-
-      const { error } = await deleteQuery;
+        .eq('id', highlightId)
+        .eq('user_id', user.id); // 只删除当前用户的高亮
 
       if (error) {
         console.error('Failed to delete highlight from Supabase:', error);
@@ -276,22 +209,15 @@ export class SupabaseStorageAdapter implements IHighlightStorage {
 
   async clearHighlights(url?: string): Promise<void> {
     try {
-      // 尝试获取或创建访客用户
-      const user = await this.getOrCreateGuestUser();
+      const user = await this.getCurrentUser();
       
       if (url) {
         // 获取该 URL 下的所有高亮 ID
-        let highlightsQuery = supabase
+        const { data: highlights } = await supabase
           .from('highlights')
           .select('id')
-          .eq('url', normalizeUrl(url));
-
-        // Only filter by user_id if we have a user
-        if (user) {
-          highlightsQuery = highlightsQuery.eq('user_id', user.id);
-        }
-
-        const { data: highlights } = await highlightsQuery;
+          .eq('url', normalizeUrl(url))
+          .eq('user_id', user.id);
 
         if (highlights && highlights.length > 0) {
           const highlightIds = highlights.map((h: { id: string }) => h.id);
@@ -303,29 +229,18 @@ export class SupabaseStorageAdapter implements IHighlightStorage {
             .in('highlight_id', highlightIds);
 
           // 删除高亮
-          let deleteQuery = supabase
+          await supabase
             .from('highlights')
             .delete()
-            .eq('url', normalizeUrl(url));
-
-          if (user) {
-            deleteQuery = deleteQuery.eq('user_id', user.id);
-          }
-
-          await deleteQuery;
+            .eq('url', normalizeUrl(url))
+            .eq('user_id', user.id);
         }
       } else {
         // 获取所有高亮 ID
-        let highlightsQuery = supabase
+        const { data: highlights } = await supabase
           .from('highlights')
-          .select('id');
-
-        // Only filter by user_id if we have a user
-        if (user) {
-          highlightsQuery = highlightsQuery.eq('user_id', user.id);
-        }
-
-        const { data: highlights } = await highlightsQuery;
+          .select('id')
+          .eq('user_id', user.id);
 
         if (highlights && highlights.length > 0) {
           const highlightIds = highlights.map((h: { id: string }) => h.id);
@@ -338,18 +253,10 @@ export class SupabaseStorageAdapter implements IHighlightStorage {
         }
 
         // 删除所有高亮
-        let deleteQuery = supabase
+        await supabase
           .from('highlights')
-          .delete();
-
-        if (user) {
-          deleteQuery = deleteQuery.eq('user_id', user.id);
-        } else {
-          // If no user, we need to target all highlights (be careful with this)
-          deleteQuery = deleteQuery.neq('id', 'impossible-id'); // Delete all
-        }
-
-        await deleteQuery;
+          .delete()
+          .eq('user_id', user.id);
       }
     } catch (error) {
       console.error('Failed to clear highlights:', error);
