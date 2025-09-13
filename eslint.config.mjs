@@ -3,7 +3,6 @@ import js from '@eslint/js';
 import tsEslint from 'typescript-eslint';
 import { includeIgnoreFile } from '@eslint/compat';
 import stylistic from '@stylistic/eslint-plugin';
-import unusedImports from 'eslint-plugin-unused-imports';
 import importPlugin from 'eslint-plugin-import';
 
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
@@ -62,7 +61,7 @@ export default [
   },
   {
     plugins: {
-      'unused-imports': unusedImports,
+      // 'unused-imports': unusedImports,
     },
     rules: {
       'no-unused-vars': 'off', // or "@typescript-eslint/no-unused-vars": "off",

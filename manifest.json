@@ -1,38 +1,35 @@
 {
   "manifest_version": 3,
   "version": "0.0.1",
-  "name": "EffiKit - 开发工具集成平台",
+  "name": "EffiKit - 高亮插件",
   "author": "EffiKit Team",
-  "description": "强大的开发工具集成平台，提供网络监控、响应编辑、性能分析等功能，提升开发效率。",
+  "description": "专业的开发工具集成平台，支持网页高亮标记、多彩高亮、云端同步等功能，提升开发和阅读效率。",
   "icons": {
-    "48": "images/extension_48.png"
+    "48": "public/images/extension_48.png"
   },
   "action": {
     "default_icon": {
-      "48": "images/extension_48.png"
+      "48": "public/images/extension_48.png"
     },
-    "default_title": "打开 EffiKit 开发工具"
+    "default_title": "EffiKit - 高亮插件"
   },
   "side_panel": {
-    "default_path": "features/sidebar/index.html"
+    "default_path": "src/sidebar/index.html"
   },
   "permissions": [
     "sidePanel",
     "activeTab",
     "tabs",
     "storage",
-    "webRequest",
-    "declarativeNetRequest",
-    "declarativeNetRequestFeedback",
     "contextMenus"
   ],
   "background": {
-    "service_worker": "background.ts"
+    "service_worker": "src/background.ts"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["features/highlighter/content-script.ts"],
+      "js": ["src/content-script.ts"],
       "run_at": "document_idle"
     }
   ],
