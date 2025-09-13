@@ -1,6 +1,6 @@
-import { normalizeUrl } from '@/utils';
 import type { Highlight, HighlightStorage, HighlightSettings } from '@/types';
 import type { IHighlightStorage } from '@/types/storage';
+import { normalizeUrl } from '@/utils';
 
 const STORAGE_KEY = 'effikit_highlights';
 const SETTINGS_KEY = 'effikit_highlight_settings';

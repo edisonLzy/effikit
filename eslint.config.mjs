@@ -4,6 +4,7 @@ import tsEslint from 'typescript-eslint';
 import { includeIgnoreFile } from '@eslint/compat';
 import stylistic from '@stylistic/eslint-plugin';
 import importPlugin from 'eslint-plugin-import';
+import unusedImports from 'eslint-plugin-unused-imports';
 
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
