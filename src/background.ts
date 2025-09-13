@@ -54,7 +54,12 @@ async function handleHighlightContextMenuClick(info: chrome.contextMenus.OnClick
       return true;
       
     case 'effikit-open-manager':
-      chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+      try {
+        await chrome.sidePanel.open({ tabId: tab.id });
+      } catch (error) {
+        console.error('Failed to open side panel:', error);
+        chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+      }
       return true;
 
     case 'effikit-highlight-selection':

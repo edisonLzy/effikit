@@ -41,7 +41,7 @@ export function HighlightsManager() {
 
   if (totalHighlights === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center">
+      <div className="flex flex-col items-center justify-center p-8 text-center h-full">
         <Highlighter className="w-12 h-12 text-gray-400 mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">暂无高亮</h3>
         <p className="text-sm text-gray-500">

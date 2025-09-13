@@ -14,7 +14,7 @@
     "default_title": "EffiKit - 高亮插件"
   },
   "side_panel": {
-    "default_path": "src/sidebar/index.html"
+    "default_path": "src/sidepanel.html"
   },
   "permissions": [
     "sidePanel",
