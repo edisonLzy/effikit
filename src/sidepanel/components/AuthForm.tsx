@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { GitBranch, Mail, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '@/config/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,32 +8,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 // OAuth登录表单组件
 function OAuthForm() {
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const { signInWithGitHub, isLoading } = useAuth();
 
   const handleGitHubAuth = async () => {
     try {
-      setIsLoading(true);
-      setError(null);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-      });
-      if (error) throw error;
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : '登录失败');
-    } finally {
-      setIsLoading(false);
+      await signInWithGitHub();
+    } catch (error) {
+      // 错误由 AuthContext 统一处理，这里不需要额外处理
+      console.error('GitHub auth failed:', error);
     }
   };
 
   return (
     <div className="space-y-4">
-      {error && (
-        <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-          {error}
-        </div>
-      )}
-      
       <Button
         onClick={handleGitHubAuth}
         disabled={isLoading}
@@ -54,11 +40,11 @@ function OAuthForm() {
 
 // 密码认证表单组件
 function PasswordAuthForm() {
+  const { signInWithEmail, signUpWithEmail, resetPasswordForEmail, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [passwordMode, setPasswordMode] = useState<'signin' | 'signup'>('signin');
   const [formState, setFormState] = useState<'form' | 'forgot-password' | 'reset-success' | 'signup-success'>('form');
 
@@ -66,8 +52,7 @@ function PasswordAuthForm() {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
-    setError(null);
-    setIsLoading(false);
+    setValidationError(null);
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -75,17 +60,11 @@ function PasswordAuthForm() {
     if (!email || !password) return;
 
     try {
-      setIsLoading(true);
-      setError(null);
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : '登录失败');
-    } finally {
-      setIsLoading(false);
+      setValidationError(null);
+      await signInWithEmail(email, password);
+    } catch (error) {
+      // 错误由 AuthContext 统一处理
+      console.error('Sign in failed:', error);
     }
   };
 
@@ -94,28 +73,22 @@ function PasswordAuthForm() {
     if (!email || !password || !confirmPassword) return;
 
     if (password !== confirmPassword) {
-      setError('两次输入的密码不一致');
+      setValidationError('两次输入的密码不一致');
       return;
     }
 
     if (password.length < 6) {
-      setError('密码至少需要6位');
+      setValidationError('密码至少需要6位');
       return;
     }
 
     try {
-      setIsLoading(true);
-      setError(null);
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-      if (error) throw error;
+      setValidationError(null);
+      await signUpWithEmail(email, password);
       setFormState('signup-success');
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : '注册失败');
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      // 错误由 AuthContext 统一处理
+      console.error('Sign up failed:', error);
     }
   };
 
@@ -124,17 +97,12 @@ function PasswordAuthForm() {
     if (!email) return;
 
     try {
-      setIsLoading(true);
-      setError(null);
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin,
-      });
-      if (error) throw error;
+      setValidationError(null);
+      await resetPasswordForEmail(email);
       setFormState('reset-success');
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : '发送重置邮件失败');
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      // 错误由 AuthContext 统一处理
+      console.error('Reset password failed:', error);
     }
   };
 
@@ -195,9 +163,9 @@ function PasswordAuthForm() {
   if (formState === 'forgot-password') {
     return (
       <div className="space-y-4">
-        {error && (
+        {validationError && (
           <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-            {error}
+            {validationError}
           </div>
         )}
         
@@ -239,9 +207,9 @@ function PasswordAuthForm() {
   // 主表单
   return (
     <div className="space-y-4">
-      {error && (
+      {validationError && (
         <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-          {error}
+          {validationError}
         </div>
       )}
       

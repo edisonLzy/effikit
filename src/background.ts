@@ -1,7 +1,5 @@
 // EffiKit 扩展的主要 background 脚本
 
-import { supabase } from './config/supabase';
-
 // 高亮功能状态管理
 const highlightEnabled = true;
 const tabHighlightStatus = new Map<number, boolean>();
@@ -242,64 +240,12 @@ function handleHighlightMessage(
   }
 }
 
-// 处理 OAuth 重定向
-async function handleOAuthRedirect(url: string) {
-  try {
-    const urlObj = new URL(url);
-    
-    // 检查是否是 Supabase 的重定向 URL
-    if (urlObj.origin === chrome.identity.getRedirectURL().replace(/\/$/, '')) {
-      const hashParams = new URLSearchParams(urlObj.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
-      
-      if (accessToken && refreshToken) {
-        // 设置 Supabase 会话
-        const { data, error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-        
-        if (!error && data.session) {
-          console.log('OAuth authentication successful');
-          
-          // 保存会话到本地存储
-          await chrome.storage.local.set({
-            'effikit_auth': {
-              access_token: accessToken,
-              refresh_token: refreshToken,
-              user: data.user
-            }
-          });
-          
-          // 关闭当前标签页
-          const tabs = await chrome.tabs.query({ url });
-          if (tabs.length > 0 && tabs[0].id) {
-            chrome.tabs.remove(tabs[0].id);
-          }
-          
-          return true;
-        }
-      }
-    }
-  } catch (error) {
-    console.error('OAuth redirect handling failed:', error);
-  }
-  
-  return false;
-}
-
 // 处理标签页更新事件
 async function handleTabUpdate(
-  tabId: number, 
-  changeInfo: chrome.tabs.TabChangeInfo, 
+  tabId: number,
+  changeInfo: chrome.tabs.TabChangeInfo,
   tab: chrome.tabs.Tab
 ) {
-  // 处理 OAuth 重定向
-  if (changeInfo.url && await handleOAuthRedirect(changeInfo.url)) {
-    return;
-  }
-  
   if (changeInfo.status === 'complete' && tab.url) {
     setTimeout(() => {
       checkTabHighlights(tabId);

@@ -10,6 +10,7 @@ interface AuthContextType {
   signInWithGitHub: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
+  resetPasswordForEmail: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -121,22 +122,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGitHub = async () => {
     try {
       setError(null);
+
+      // 获取 OAuth URL
+      const redirectTo = chrome.identity.getRedirectURL();
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: chrome.identity.getRedirectURL(),
+          redirectTo,
         },
       });
-      
+
       if (error) {
         setError(error);
         throw error;
       }
-      
-      // 在新标签页中打开认证URL
-      if (data.url) {
-        await chrome.tabs.create({ url: data.url });
+
+      if (!data.url) {
+        throw new Error('未能获取认证 URL');
       }
+
+      // 使用 Chrome Identity API 进行认证
+      const redirectUrl = await chrome.identity.launchWebAuthFlow({
+        url: data.url,
+        interactive: true,
+      });
+
+      if (!redirectUrl) {
+        throw new Error('认证被用户取消');
+      }
+
+      // 解析重定向 URL 中的认证参数
+      const urlObj = new URL(redirectUrl);
+      const hashParams = new URLSearchParams(urlObj.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+
+      if (!accessToken || !refreshToken) {
+        throw new Error('认证响应中缺少必要的令牌');
+      }
+
+      // 设置 Supabase 会话
+      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+
+      if (sessionError) {
+        setError(sessionError);
+        throw sessionError;
+      }
+
+      if (sessionData.session) {
+        console.log('GitHub OAuth 认证成功');
+
+        // 保存会话到本地存储
+        await chrome.storage.local.set({
+          'effikit_auth': {
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            user: sessionData.user
+          }
+        });
+      }
+
     } catch (err) {
       setError(err as AuthError);
       throw err;
@@ -179,6 +227,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const resetPasswordForEmail = async (email: string) => {
+    try {
+      setError(null);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin,
+      });
+      
+      if (error) {
+        setError(error);
+        throw error;
+      }
+    } catch (err) {
+      setError(err as AuthError);
+      throw err;
+    }
+  };
+
   const value = {
     user,
     isLoading,
@@ -187,6 +252,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithGitHub,
     signInWithEmail,
     signUpWithEmail,
+    resetPasswordForEmail,
   };
 
   return (
