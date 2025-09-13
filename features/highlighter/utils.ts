@@ -1,7 +1,8 @@
+import { v4 as uuidv4 } from 'uuid';
 import type { HighlightColor, Highlight } from './types';
 
-export function generateHighlightId(prefix: string = 'highlight'): string {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+export function generateHighlightId(): string {
+  return uuidv4();
 }
 
 export function getHighlightColorClass(color: HighlightColor): string {
