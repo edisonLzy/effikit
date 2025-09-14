@@ -1,6 +1,5 @@
 import { HighlightElement } from './ui/HighlightElement';
 import { HighlightToolbarElement } from './ui/HighlightToolbar';
-import { HighlightTagPanelElement } from './ui/HighlightTagPanel';
 import type { Highlight, HighlightTag, TextRange } from '@/types';
 
 export function createRangeFromHighlight(highlight: Highlight): Range | null {
@@ -623,9 +622,5 @@ export function registerHighlightElements() {
 
   if (!customElements.get(HighlightToolbarElement.tagName)) {
     customElements.define(HighlightToolbarElement.tagName, HighlightToolbarElement);
-  }
-
-  if (!customElements.get(HighlightTagPanelElement.tagName)) {
-    customElements.define(HighlightTagPanelElement.tagName, HighlightTagPanelElement);
   }
 }
