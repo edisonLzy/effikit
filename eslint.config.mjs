@@ -5,6 +5,7 @@ import { includeIgnoreFile } from '@eslint/compat';
 import stylistic from '@stylistic/eslint-plugin';
 import importPlugin from 'eslint-plugin-import';
 import unusedImports from 'eslint-plugin-unused-imports';
+import globals from 'globals';
 
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
@@ -13,6 +14,14 @@ const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
  */
 export default [
   includeIgnoreFile(gitignorePath),
+  {
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+      },
+    }
+  },
   {
     rules: {
       ...js.configs.recommended.rules,
