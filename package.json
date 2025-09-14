@@ -2,7 +2,7 @@
   "private": true,
   "name": "smart-highlighter",
   "description": "专业的网页高亮工具，支持文本标记、多彩高亮、云端同步，提升阅读和学习效率。",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": {
     "name": "EffiKit Team",
     "email": "team@effikit.com",
