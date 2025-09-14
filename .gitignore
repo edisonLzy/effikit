@@ -50,3 +50,5 @@ node_modules/
 # OS specific
 # Task files
 .mcp.json
+
+*.zip
