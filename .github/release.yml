@@ -1,0 +1,77 @@
+name_template: 'v$RESOLVED_VERSION'
+tag_template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: '🚀 新功能'
+    labels:
+      - 'enhancement'
+      - 'feature'
+  - title: '🐛 问题修复'
+    labels:
+      - 'bug'
+      - 'fix'
+  - title: '📖 文档改进'
+    labels:
+      - 'documentation'
+      - 'docs'
+  - title: '🔧 性能优化'
+    labels:
+      - 'performance'
+      - 'optimization'
+  - title: '🎨 界面改进'
+    labels:
+      - 'ui'
+      - 'style'
+  - title: '🧹 代码重构'
+    labels:
+      - 'refactor'
+      - 'cleanup'
+
+change_template: '- $TITLE (#$NUMBER) by @$AUTHOR'
+change_title_escapes: '\<*_&'
+
+version_resolver:
+  major:
+    labels:
+      - 'major'
+      - 'breaking'
+  minor:
+    labels:
+      - 'minor'
+      - 'feature'
+      - 'enhancement'
+  patch:
+    labels:
+      - 'patch'
+      - 'bug'
+      - 'fix'
+  default: patch
+
+template: |
+  ## 🎉 EffiKit Chrome 扩展更新
+
+  ### 📦 本次更新内容
+  $CHANGES
+
+  ### 📥 安装说明
+  1. 下载 `effikit-extension-v$RESOLVED_VERSION.zip` 文件
+  2. 解压到本地文件夹
+  3. 打开 Chrome 浏览器的扩展管理页面 (`chrome://extensions/`)
+  4. 开启「开发者模式」
+  5. 点击「加载已解压的扩展程序」，选择解压后的文件夹
+
+  ### 🔧 技术规格
+  - **框架**: React 18 + TypeScript
+  - **扩展**: Chrome Manifest V3
+  - **存储**: Supabase 云端存储 + Chrome Storage API 本地备份
+  - **样式**: Tailwind CSS + shadcn/ui
+
+  ### ⚡ 主要特性
+  - 🎨 多色彩高亮标记
+  - ☁️ 云端同步功能
+  - 📱 侧边栏管理界面
+  - 🔒 样式隔离技术
+  - 🌐 跨网站兼容性
+
+  ---
+  **完整更新日志**: https://github.com/edisonLzy/effikit/compare/v$PREVIOUS_TAG...v$RESOLVED_VERSION

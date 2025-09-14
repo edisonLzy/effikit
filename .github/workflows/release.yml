@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint code
+        run: pnpm lint
+
+      - name: Build extension
+        run: pnpm build
+
+      - name: Create extension package
+        run: |
+          cd dist/chrome
+          zip -r ../../effikit-extension-${{ github.ref_name }}.zip .
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${{ github.ref_name }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # 生成简单的变更日志
+          echo "## 📦 Chrome Extension Package" > changelog.md
+          echo "" >> changelog.md
+          echo "### 🚀 新增功能" >> changelog.md
+          echo "- 网页高亮标记功能" >> changelog.md
+          echo "- 多色彩高亮支持" >> changelog.md
+          echo "- 云端同步功能" >> changelog.md
+          echo "- 侧边栏管理界面" >> changelog.md
+          echo "" >> changelog.md
+          echo "### 📥 安装说明" >> changelog.md
+          echo "1. 下载 \`effikit-extension-$VERSION.zip\` 文件" >> changelog.md
+          echo "2. 解压到本地文件夹" >> changelog.md
+          echo "3. 打开 Chrome 浏览器的扩展管理页面 (chrome://extensions/)" >> changelog.md
+          echo "4. 开启\"开发者模式\"" >> changelog.md
+          echo "5. 点击\"加载已解压的扩展程序\"，选择解压后的文件夹" >> changelog.md
+          echo "" >> changelog.md
+          echo "### 🔧 技术规格" >> changelog.md
+          echo "- Manifest V3" >> changelog.md
+          echo "- React + TypeScript" >> changelog.md
+          echo "- Supabase 云端存储" >> changelog.md
+          echo "- Chrome Storage API 本地备份" >> changelog.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.changelog.outputs.version }}
+          name: EffiKit 高亮插件 ${{ steps.changelog.outputs.version }}
+          body_path: changelog.md
+          files: |
+            effikit-extension-${{ github.ref_name }}.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-build-${{ github.ref_name }}
+          path: |
+            dist/
+            effikit-extension-${{ github.ref_name }}.zip
+          retention-days: 30
