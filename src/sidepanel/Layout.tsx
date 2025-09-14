@@ -1,10 +1,12 @@
-import { Outlet } from 'react-router';
-import { LogOut, User } from 'lucide-react';
+import { Outlet, useNavigate, useLocation } from 'react-router';
+import { LogOut, User, Settings, ArrowLeft } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 
 export function Layout() {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     try {
@@ -13,6 +15,12 @@ export function Layout() {
       console.error('Error signing out:', error);
     }
   };
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+
+  const isConfigPage = location.pathname === '/config';
 
   return (
     <div className="h-full flex flex-col bg-background text-foreground">
@@ -25,15 +33,38 @@ export function Layout() {
               {user.email}
             </span>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleSignOut}
-            className="h-8 w-8 p-0"
-            title="登出"
-          >
-            <LogOut className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            {isConfigPage ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleNavigation('/')}
+                className="h-8 w-8 p-0"
+                title="返回主页"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleNavigation('/config')}
+                className="h-8 w-8 p-0"
+                title="配置"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className="h-8 w-8 p-0"
+              title="登出"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         </header>
       )}
       

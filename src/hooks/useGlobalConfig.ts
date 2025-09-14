@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 // Define the structure for a single feature's configuration
-export type FeatureConfig = Record<string, number | boolean | string>;
+export type FeatureConfig = Record<string, number | boolean | string | any[]>;
 
 // Define the global configuration structure
 export type GlobalConfig = Record<string, FeatureConfig>;

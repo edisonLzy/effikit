@@ -104,3 +104,46 @@ export interface HighlightContentPopoverData {
     y: number;
   };
 }
+
+// Dify Workflow 相关类型定义
+
+// Dify 工作流配置
+export interface DifyWorkflow {
+  key: string; // 工作流唯一标识符
+  title: string; // 工作流显示名称
+  apiKey: string; // API_KEY 用于认证
+}
+
+// Dify 工作流配置集合
+export interface DifyConfig {
+  workflows: DifyWorkflow[];
+}
+
+// Dify API 请求参数
+export interface DifyWorkflowRequest {
+  inputs: {
+    content: string; // 高亮的内容
+    references: string; // 当前网页的地址
+    user: string; // 用户标识
+  };
+  response_mode: 'blocking' | 'streaming'; // 响应模式
+  user: string; // 用户标识（与 inputs.user 相同）
+}
+
+// Dify API 响应
+export interface DifyWorkflowResponse {
+  workflow_run_id: string;
+  task_id: string;
+  data: {
+    id: string;
+    workflow_id: string;
+    status: string;
+    outputs: Record<string, any>;
+    error?: string;
+    elapsed_time: number;
+    total_tokens: number;
+    total_steps: number;
+    created_at: number;
+    finished_at: number;
+  };
+}

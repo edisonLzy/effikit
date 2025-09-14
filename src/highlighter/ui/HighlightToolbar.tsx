@@ -1,9 +1,10 @@
-import React, { useLayoutEffect } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import { useFloating, autoUpdate, offset, flip, shift, useDismiss, useInteractions } from '@floating-ui/react';
-import { Highlighter, Trash2 } from 'lucide-react';
+import { Highlighter, Trash2, FileText, Loader2 } from 'lucide-react';
 import { ReactCustomElement } from './ReactCustomElement';
 import type { VirtualElement } from '@floating-ui/react';
 import { createLogger } from '@/utils/logger';
+import { getFeishuWorkflow, DifyService } from '@/services/difyService';
 
 const logger = createLogger('HighlightToolbar');
 
@@ -24,6 +25,73 @@ interface HighlightToolbarProps {
 
 // Tags area removed for simplified implementation
 
+// SaveToFeishuButton 独立组件
+function SaveToFeishuButton() {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSaveToFeishu = async () => {
+    if (isLoading) return; // 防止重复点击
+
+    setIsLoading(true);
+
+    try {
+      // 获取当前选中的文本
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) {
+        logger.warn('No text selection found for saving to Feishu');
+        return;
+      }
+
+      const selectedText = selection.toString().trim();
+      if (!selectedText) {
+        logger.warn('Selected text is empty');
+        return;
+      }
+
+      // 获取配置的飞书工作流
+      const feishuWorkflow = await getFeishuWorkflow();
+      if (!feishuWorkflow) {
+        logger.error('No Feishu workflow configured');
+        alert('未配置"保存内容到飞书"工作流，请先在配置页面中添加');
+        return;
+      }
+
+      // 获取当前页面URL
+      const currentUrl = window.location.href;
+
+      logger.info('Saving to Feishu:', { text: selectedText, url: currentUrl });
+
+      // 调用 Dify 工作流保存到飞书
+      const success = await DifyService.saveToFeishu(feishuWorkflow, selectedText, currentUrl);
+
+      if (success) {
+        logger.info('Successfully saved to Feishu');
+        // TODO: 可以添加更好的成功提示
+      } else {
+        logger.error('Failed to save to Feishu');
+        alert('保存到飞书失败，请检查工作流配置');
+      }
+    } catch (error) {
+      logger.error('Error saving to Feishu:', error);
+      alert(`保存到飞书时发生错误: ${error instanceof Error ? error.message : '未知错误'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <button
+      className={`save-to-feishu-btn ${isLoading ? 'loading' : ''}`}
+      data-action="save-to-feishu"
+      onClick={handleSaveToFeishu}
+      disabled={isLoading}
+      title={isLoading ? '保存中...' : '保存到飞书'}
+    >
+      {isLoading ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+    </button>
+  );
+}
+
 function ToolbarActions({ highlightId }: { highlightId?: string }) {
   const handleHighlight = () => {
     const customEvent = new CustomEvent('effikit-highlight-create');
@@ -38,14 +106,17 @@ function ToolbarActions({ highlightId }: { highlightId?: string }) {
   return (
     <div className="toolbar-actions">
       {highlightId ? (
-        <button
-          className="remove-highlight-btn"
-          data-action="remove-highlight"
-          onClick={handleRemoveHighlight}
-          title="取消高亮"
-        >
-          <Trash2 size={14} />
-        </button>
+        <>
+          <SaveToFeishuButton />
+          <button
+            className="remove-highlight-btn"
+            data-action="remove-highlight"
+            onClick={handleRemoveHighlight}
+            title="取消高亮"
+          >
+            <Trash2 size={14} />
+          </button>
+        </>
       ) : (
         <button
           className="highlight-btn"
@@ -297,19 +368,70 @@ export class HighlightToolbarElement extends ReactCustomElement {
         color: #dc2626;
         background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.12) 100%);
         border-color: rgba(239, 68, 68, 0.3);
-        box-shadow: 
+        box-shadow:
           0 4px 12px rgba(239, 68, 68, 0.15),
           0 2px 4px rgba(239, 68, 68, 0.08),
           0 0 0 1px rgba(239, 68, 68, 0.1) inset;
+      }
+
+      .save-to-feishu-btn {
+        color: #3b82f6;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%);
+        border-color: rgba(59, 130, 246, 0.2);
+        box-shadow:
+          0 1px 2px rgba(59, 130, 246, 0.1),
+          0 0 0 1px rgba(59, 130, 246, 0.05) inset;
+      }
+
+      .save-to-feishu-btn:hover:not(:disabled) {
+        color: #2563eb;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.12) 100%);
+        border-color: rgba(59, 130, 246, 0.3);
+        box-shadow:
+          0 4px 12px rgba(59, 130, 246, 0.15),
+          0 2px 4px rgba(59, 130, 246, 0.08),
+          0 0 0 1px rgba(59, 130, 246, 0.1) inset;
+      }
+
+      .save-to-feishu-btn.loading {
+        opacity: 0.7;
+        cursor: wait;
+      }
+
+      .save-to-feishu-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .save-to-feishu-btn:disabled:hover {
+        transform: none;
+        box-shadow:
+          0 1px 2px rgba(59, 130, 246, 0.1),
+          0 0 0 1px rgba(59, 130, 246, 0.05) inset;
       }
       
       /* 添加图标样式优化 */
       .toolbar-actions button svg {
         transition: transform 0.2s ease;
       }
-      
+
       .toolbar-actions button:hover:not(:disabled) svg {
         transform: scale(1.1);
+      }
+
+      /* Loading spinner animation */
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .animate-spin {
+        animation: spin 1s linear infinite;
       }
     `);
     return sheet;
